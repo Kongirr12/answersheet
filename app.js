@@ -161,17 +161,17 @@ async function renderDashboardPage() {
         <h2 style="margin-bottom: 16px;">ภาพรวมระบบ (Dashboard)</h2>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-          <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.8), rgba(99, 102, 241, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
-            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-books"></i> จำนวนวิชาทั้งหมด</div>
+          <div style="background: rgba(255, 255, 255, 0.8); color: var(--text-primary); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 5px;"><i class="ph ph-books" style="color: var(--primary-color);"></i> จำนวนวิชาทั้งหมด</div>
             <div style="font-size: 2.5rem; font-weight: 700;">${stats.totalSubjects}</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(52, 211, 153, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
-            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-scan"></i> กระดาษคำตอบที่สแกนแล้ว</div>
+          <div style="background: rgba(255, 255, 255, 0.8); color: var(--text-primary); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 5px;"><i class="ph ph-scan" style="color: #10B981;"></i> กระดาษคำตอบที่สแกนแล้ว</div>
             <div style="font-size: 2.5rem; font-weight: 700;">${stats.totalScans}</div>
           </div>
-          <div style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(244, 114, 182, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
-            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-activity"></i> สถานะระบบ</div>
-            <div style="font-size: 1.8rem; font-weight: 700; margin-top: 5px;">ออนไลน์ปกติ</div>
+          <div style="background: rgba(255, 255, 255, 0.8); color: var(--text-primary); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 5px;"><i class="ph ph-activity" style="color: #F59E0B;"></i> สถานะระบบ</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-top: 5px; color: #10B981;">ออนไลน์ปกติ</div>
           </div>
         </div>
       </div>
