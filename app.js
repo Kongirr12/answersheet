@@ -109,7 +109,7 @@ function loginSuccess(user) {
 }
 
 function handleLogout(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   currentUser = null;
   document.getElementById('app-screen').classList.remove('active');
   document.getElementById('login-screen').classList.add('active');
@@ -188,3 +188,31 @@ async function renderDashboardPage() {
   `;
   contentContainer.innerHTML = content;
 }
+
+// ====== SESSION TIMEOUT ======
+let idleTime = 0;
+const TIMEOUT_MINUTES = 10;
+
+function resetIdleTime() {
+  idleTime = 0;
+}
+
+setInterval(() => {
+  if (currentUser) {
+    idleTime++;
+    if (idleTime >= TIMEOUT_MINUTES) {
+      Swal.fire({
+        title: 'เซสชันหมดอายุ',
+        text: 'ระบบได้ทำการออกจากระบบอัตโนมัติ เนื่องจากไม่มีการใช้งานเกิน 10 นาที เพื่อความปลอดภัย',
+        icon: 'warning',
+        confirmButtonText: 'ตกลง'
+      });
+      handleLogout();
+    }
+  }
+}, 60000); // Check every 1 minute
+
+document.addEventListener('mousemove', resetIdleTime);
+document.addEventListener('keypress', resetIdleTime);
+document.addEventListener('click', resetIdleTime);
+document.addEventListener('scroll', resetIdleTime);

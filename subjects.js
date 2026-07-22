@@ -60,24 +60,27 @@ async function renderSubjectsPage() {
 
     <!-- Subject Modal (Hidden by default) -->
     <div id="subject-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); align-items: center; justify-content: center; z-index: 1000;">
-      <div class="card" style="width: 500px; max-width: 90%;">
-        <h3 style="margin-bottom: 20px;" id="subject-modal-title">เพิ่มรายวิชาใหม่</h3>
+      <div class="card" style="width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto; position: relative;">
+        <button type="button" onclick="closeSubjectModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);"><i class="ph ph-x"></i></button>
+        <h3 style="margin-bottom: 25px; color: var(--primary-color); border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 15px;" id="subject-modal-title">เพิ่มรายวิชาใหม่</h3>
         <form onsubmit="saveSubject(event)">
-          <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px;">รหัสวิชา</label>
-            <input type="text" id="subj-code" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
-          </div>
-          <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px;">ชื่อวิชา</label>
-            <input type="text" id="subj-name" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
-          </div>
           <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+              <label style="display: block; margin-bottom: 5px; font-weight: 500;">รหัสวิชา</label>
+              <input type="text" id="subj-code" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
+            </div>
+            <div style="flex: 2;">
+              <label style="display: block; margin-bottom: 5px; font-weight: 500;">ชื่อวิชา</label>
+              <input type="text" id="subj-name" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
+            </div>
+          </div>
+          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
              <div style="flex: 1;">
-               <label style="display: block; margin-bottom: 5px;">ชั้นเรียน</label>
+               <label style="display: block; margin-bottom: 5px; font-weight: 500;">ชั้นเรียน</label>
                <input type="text" id="subj-class" placeholder="เช่น ม.4/1" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
              </div>
              <div style="flex: 1;">
-               <label style="display: block; margin-bottom: 5px;">ประเภทการสอบ</label>
+               <label style="display: block; margin-bottom: 5px; font-weight: 500;">ประเภทการสอบ</label>
                <select id="subj-type" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit; background: white;">
                  <option value="กลางภาค">กลางภาค</option>
                  <option value="ปลายภาค">ปลายภาค</option>
@@ -85,21 +88,21 @@ async function renderSubjectsPage() {
                </select>
              </div>
              <div style="flex: 1;">
-               <label style="display: block; margin-bottom: 5px;">ปรนัย (จำนวนข้อ)</label>
+               <label style="display: block; margin-bottom: 5px; font-weight: 500;">ปรนัย (จำนวนข้อ)</label>
                <input type="number" id="subj-qty" min="0" max="100" value="20" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
              </div>
              <div style="flex: 1;">
-               <label style="display: block; margin-bottom: 5px;">อัตนัย (คะแนนเต็ม)</label>
+               <label style="display: block; margin-bottom: 5px; font-weight: 500;">อัตนัย (คะแนนเต็ม)</label>
                <input type="number" id="subj-written-score" min="0" value="0" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;" placeholder="0 = ไม่มี">
              </div>
           </div>
           <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px;">ออกแบบข้อเขียน (พิมพ์โจทย์ / แทรกรูปภาพ)</label>
-            <div id="quill-editor" style="height: 150px; background: white; border-radius: 0 0 6px 6px;"></div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500;"><i class="ph ph-text-aa"></i> ออกแบบข้อเขียน (พิมพ์โจทย์ / แทรกรูปภาพ)</label>
+            <div id="quill-editor" style="height: 300px; background: white; border-radius: 0 0 6px 6px;"></div>
           </div>
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-            <button type="button" class="btn btn-outline" onclick="closeSubjectModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
+            <button type="button" class="btn btn-outline" onclick="closeSubjectModal()" style="padding: 10px 25px;">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 25px;"><i class="ph ph-floppy-disk"></i> บันทึกข้อมูล</button>
           </div>
         </form>
       </div>
