@@ -22,7 +22,7 @@ const Database = (function() {
     const requiredSheets = [
       { name: 'Users', headers: ['Username', 'Password', 'Name', 'Role', 'Status'] },
       { name: 'Students', headers: ['StudentID', 'Name', 'Class'] },
-      { name: 'Subjects', headers: ['SubjectID', 'Code', 'Name', 'Class', 'TotalQuestions'] },
+      { name: 'Subjects', headers: ['SubjectID', 'Code', 'Name', 'Class', 'TotalQuestions', 'ExamType', 'MaxWrittenScore', 'WrittenContent'] },
       { name: 'AnswerKeys', headers: ['SubjectID', 'QuestionNo', 'CorrectAnswer'] },
       { name: 'ScanResults', headers: ['ScanID', 'SubjectID', 'StudentID', 'Score', 'Confidence', 'DriveImageURL', 'Timestamp'] },
       { name: 'Settings', headers: ['Key', 'Value'] }
@@ -38,6 +38,9 @@ const Database = (function() {
         if (req.name === 'Users') {
           sheet.appendRow(['admin', '1234', 'แอดมินระบบ', 'admin', 'Active']);
         }
+      } else {
+        // อัปเดตหัวตาราง (Row 1) ให้เป็นเวอร์ชันล่าสุดเสมอ เผื่อกรณีเพิ่มคอลัมน์ใหม่
+        sheet.getRange(1, 1, 1, req.headers.length).setValues([req.headers]);
       }
     });
   }
@@ -111,9 +114,34 @@ const Database = (function() {
     try {
       const sheet = getSheet('Subjects');
       if (!sheet) return { success: false, message: 'ไม่พบตาราง Subjects' };
-      // payload = { SubjectID, Code, Name, Class, TotalQuestions }
-      sheet.appendRow([payload.SubjectID, payload.Code, payload.Name, payload.Class, payload.TotalQuestions]);
-      return { success: true, message: 'บันทึกรายวิชาสำเร็จ' };
+      
+      const data = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(payload.SubjectID)) {
+          rowIndex = i + 1;
+          break;
+        }
+      }
+      
+      const rowData = [
+        payload.SubjectID, 
+        payload.Code, 
+        payload.Name, 
+        payload.Class, 
+        payload.TotalQuestions, 
+        payload.ExamType || 'ทั่วไป', 
+        payload.MaxWrittenScore || 0, 
+        payload.WrittenContent || ''
+      ];
+      
+      if (rowIndex > -1) {
+        sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+        return { success: true, message: 'อัปเดตรายวิชาสำเร็จ' };
+      } else {
+        sheet.appendRow(rowData);
+        return { success: true, message: 'บันทึกรายวิชาสำเร็จ' };
+      }
     } catch (e) {
       return { success: false, message: e.toString() };
     }
