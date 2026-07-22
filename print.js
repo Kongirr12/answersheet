@@ -1,14 +1,14 @@
 // ====== PRINT OMR SHEET LOGIC ======
 
 function printOMRSheet(subjectId) {
-  const subject = mockSubjects.find(s => s.id === subjectId) || { code: 'XXXX', name: 'ไม่ระบุ', class: 'ไม่ระบุ', totalQuestions: 20 };
+  const subject = globalSubjects.find(s => s.SubjectID === subjectId) || { Code: 'XXXX', Name: 'ไม่ระบุ', Class: 'ไม่ระบุ', TotalQuestions: 20, SubjectID: subjectId };
   
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="th">
     <head>
       <meta charset="UTF-8">
-      <title>กระดาษคำตอบ - ${subject.name}</title>
+      <title>กระดาษคำตอบ - ${subject.Name}</title>
       <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
       <style>
         body { font-family: 'Kanit', sans-serif; margin: 0; padding: 0; background: #fff; }
@@ -64,9 +64,9 @@ function printOMRSheet(subjectId) {
         <div class="header">
           <h1>กระดาษคำตอบ (OMR)</h1>
           <div class="info-row">
-            <span><strong>วิชา:</strong> ${subject.name} (${subject.code})</span>
-            <span><strong>ชั้นเรียน:</strong> ${subject.class}</span>
-            <span><strong>รหัสข้อสอบ:</strong> ${subject.id}</span>
+            <span><strong>วิชา:</strong> ${subject.Name} (${subject.Code})</span>
+            <span><strong>ชั้นเรียน:</strong> ${subject.Class}</span>
+            <span><strong>รหัสข้อสอบ:</strong> ${subject.SubjectID}</span>
           </div>
           <div class="info-row" style="margin-top: 15px;">
             <span><strong>ชื่อ-สกุล:</strong> _________________________________________</span>
@@ -92,7 +92,7 @@ function printOMRSheet(subjectId) {
 
           <!-- Question Marking -->
           <div class="answers-grid">
-            ${generateAnswerColumns(subject.totalQuestions)}
+            ${generateAnswerColumns(subject.TotalQuestions)}
           </div>
         </div>
         
