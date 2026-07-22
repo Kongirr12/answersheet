@@ -76,11 +76,16 @@ function renderScanPage() {
               <div style="font-size: 3rem; color: #059669; font-weight: bold; line-height: 1;"><span id="res-score">-</span><span style="font-size: 1.2rem; color: #666;">/${currentScanSubject ? currentScanSubject.TotalQuestions : '-'}</span></div>
             </div>
             
-            <div id="res-details" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem; background: rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; border: var(--glass-border);">
+            <div id="res-details" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem; background: rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; border: var(--glass-border); margin-bottom: 15px;">
               <!-- Detail rows here -->
             </div>
             
-            <button id="btn-save-result" class="btn btn-primary w-100" style="margin-top: 20px; padding: 12px; font-size: 1.1rem;" onclick="saveResult()" disabled>
+            <div id="written-score-container" style="display:none; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 8px; border: var(--glass-border); text-align: center;">
+              <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--primary-color);">กรอกคะแนนข้อเขียน (เต็ม <span id="max-written-label">0</span>)</label>
+              <input type="number" id="input-written-score" min="0" value="0" class="form-control" style="width:100px; text-align:center; font-size:1.2rem; margin: 0 auto;" onchange="updateTotalScore()">
+            </div>
+            
+            <button id="btn-save-result" class="btn btn-primary w-100" style="padding: 12px; font-size: 1.1rem;" onclick="saveResult()" disabled>
               <i class="ph ph-floppy-disk"></i> บันทึกเข้าระบบ
             </button>
           </div>
@@ -241,12 +246,45 @@ function gradeOMR() {
   
   document.getElementById('btn-save-result').disabled = false;
   
+  const maxWritten = currentScanSubject ? parseInt(currentScanSubject.MaxWrittenScore) || 0 : 0;
+  if (maxWritten > 0) {
+    document.getElementById('written-score-container').style.display = 'block';
+    document.getElementById('max-written-label').innerText = maxWritten;
+    document.getElementById('input-written-score').max = maxWritten;
+    document.getElementById('input-written-score').value = 0;
+  } else {
+    document.getElementById('written-score-container').style.display = 'none';
+  }
+  
   lastScanResult = {
     StudentID: studentId,
     Score: score,
-    Confidence: '92%'
+    Confidence: '92%',
+    WrittenScore: 0,
+    TotalScore: score
   };
 }
+
+window.updateTotalScore = function() {
+  if (!lastScanResult) return;
+  const writtenInput = document.getElementById('input-written-score');
+  let writtenScore = parseInt(writtenInput.value) || 0;
+  const maxWritten = parseInt(document.getElementById('max-written-label').innerText) || 0;
+  
+  if (writtenScore > maxWritten) {
+    writtenScore = maxWritten;
+    writtenInput.value = maxWritten;
+  }
+  if (writtenScore < 0) {
+    writtenScore = 0;
+    writtenInput.value = 0;
+  }
+  
+  lastScanResult.WrittenScore = writtenScore;
+  lastScanResult.TotalScore = lastScanResult.Score + writtenScore;
+  
+  document.getElementById('res-score').innerText = lastScanResult.TotalScore;
+};
 
 async function saveResult() {
   if (!lastScanResult || !currentScanSubject) return;
@@ -271,7 +309,7 @@ async function saveResult() {
     ScanID: 'SCN-' + Date.now(),
     SubjectID: currentScanSubject.SubjectID,
     StudentID: lastScanResult.StudentID,
-    Score: lastScanResult.Score,
+    Score: lastScanResult.TotalScore,
     Confidence: lastScanResult.Confidence,
     DriveImageURL: driveUrl
   };

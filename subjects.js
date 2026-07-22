@@ -81,9 +81,17 @@ async function renderSubjectsPage() {
                </select>
              </div>
              <div style="flex: 1;">
-               <label style="display: block; margin-bottom: 5px;">จำนวนข้อสอบ</label>
-               <input type="number" id="subj-qty" min="20" max="100" value="20" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
+               <label style="display: block; margin-bottom: 5px;">ปรนัย (จำนวนข้อ)</label>
+               <input type="number" id="subj-qty" min="0" max="100" value="20" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
              </div>
+             <div style="flex: 1;">
+               <label style="display: block; margin-bottom: 5px;">อัตนัย (คะแนนเต็ม)</label>
+               <input type="number" id="subj-written-score" min="0" value="0" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;" placeholder="0 = ไม่มี">
+             </div>
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">ออกแบบข้อเขียน (พิมพ์โจทย์ / แทรกรูปภาพ)</label>
+            <div id="quill-editor" style="height: 150px; background: white; border-radius: 0 0 6px 6px;"></div>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" class="btn btn-outline" onclick="closeSubjectModal()">ยกเลิก</button>
@@ -111,6 +119,23 @@ async function renderSubjectsPage() {
     </div>
   `;
   document.getElementById('page-content').innerHTML = content;
+  
+  // Initialize Quill Editor
+  if (window.Quill) {
+    window.quillEditor = new Quill('#quill-editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, false] }],
+          ['bold', 'italic', 'underline'],
+          ['image'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'align': [] }]
+        ]
+      },
+      placeholder: 'พิมพ์โจทย์ข้อเขียน แทรกรูปภาพ ฯลฯ'
+    });
+  }
 }
 
 function openSubjectModal() {
@@ -146,13 +171,20 @@ function confirmPrint(subjectId) {
 
 async function saveSubject(e) {
   e.preventDefault();
+  const writtenScore = parseInt(document.getElementById('subj-written-score').value) || 0;
+  // Use a reliable way to get Quill HTML; if it's empty, save as blank
+  const writtenHTML = window.quillEditor && window.quillEditor.root.innerHTML !== '<p><br></p>' 
+                      ? window.quillEditor.root.innerHTML : '';
+
   const payload = {
     SubjectID: 'SUB' + Date.now(),
     Code: document.getElementById('subj-code').value,
     Name: document.getElementById('subj-name').value,
     Class: document.getElementById('subj-class').value,
     ExamType: document.getElementById('subj-type').value,
-    TotalQuestions: parseInt(document.getElementById('subj-qty').value)
+    TotalQuestions: parseInt(document.getElementById('subj-qty').value),
+    MaxWrittenScore: writtenScore,
+    WrittenContent: writtenHTML
   };
   
   Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
