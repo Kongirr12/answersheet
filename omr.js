@@ -121,20 +121,45 @@ function simulateOMRResult() {
 }
 
 async function saveResult() {
-  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  Swal.fire({ title: 'กำลังบันทึกภาพและผลคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
+  // 1. Get base64 image from canvas
+  const canvas = document.getElementById('omr-canvas');
+  let base64Image = '';
+  try {
+    base64Image = canvas.toDataURL('image/jpeg', 0.8);
+  } catch (e) {
+    console.error("Canvas to DataURL failed", e);
+  }
+
+  // 2. Upload image to Google Drive if we have an image
+  let driveUrl = '';
+  if (base64Image) {
+    const uploadRes = await apiCall({ 
+      action: 'uploadImage', 
+      base64Data: base64Image,
+      filename: `SCAN_12345_${Date.now()}.jpg`
+    });
+    
+    if (uploadRes && uploadRes.success) {
+      driveUrl = uploadRes.url;
+    }
+  }
+
+  // 3. Save Scan Result to Google Sheets
   const payload = {
     ScanID: 'SCAN' + Date.now(),
     SubjectID: 'SUB-CURRENT', // Normally selected from UI dropdown
     StudentID: '12345',
     Score: 18,
     Confidence: '98%',
-    DriveImageURL: ''
+    DriveImageURL: driveUrl
   };
   
   const res = await apiCall({ action: 'saveScanResult', payload: payload });
+  
   if (res && res.success) {
-    Swal.fire('สำเร็จ', 'บันทึกคะแนนเข้าสู่ Google Sheets เรียบร้อย', 'success');
+    Swal.fire('สำเร็จ', 'บันทึกคะแนนและรูปภาพเรียบร้อย', 'success');
     document.getElementById('scanner-workspace').style.display = 'none';
   } else {
     Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + (res ? res.message : ''), 'error');

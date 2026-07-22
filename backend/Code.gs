@@ -64,6 +64,9 @@ function processRequest(params) {
     case 'loginStudent':
       return Database.loginStudent(params.studentId);
       
+    case 'uploadImage':
+      return DriveManager.uploadImage(params.base64Data, params.filename);
+      
     case 'saveScanResult':
       return Database.saveScanResult(params.payload);
 
