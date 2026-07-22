@@ -41,7 +41,7 @@ function renderScanPage() {
         <label style="font-weight: bold; margin-bottom: 8px; display: block;">1. เลือกวิชาที่ต้องการตรวจ:</label>
         <select id="scan-subject" class="form-control" style="width: 100%; padding: 10px; font-family: Kanit; margin-bottom: 10px;" onchange="loadAnswerKeysForScan()">
           <option value="">-- กรุณาเลือกวิชา --</option>
-          \${globalSubjects.map(s => \`<option value="\${s.SubjectID}">\${s.Name} (\${s.Code})</option>\`).join('')}
+          ${globalSubjects.map(s => `<option value="${s.SubjectID}">${s.Name} (${s.Code})</option>`).join('')}
         </select>
         <div id="scan-keys-status" style="font-size: 0.85rem; color: #666;">กรุณาเลือกวิชาเพื่อดึงเฉลยจากฐานข้อมูล</div>
       </div>
@@ -73,7 +73,7 @@ function renderScanPage() {
             <hr style="border: none; border-top: 1px dashed #eee; margin: 15px 0;">
             <div style="text-align: center; margin-bottom: 15px;">
               <div style="font-size: 0.9rem; color: var(--text-secondary);">คะแนนที่ได้</div>
-              <div style="font-size: 3rem; color: #059669; font-weight: bold; line-height: 1;"><span id="res-score">-</span><span style="font-size: 1.2rem; color: #666;">/\${currentScanSubject ? currentScanSubject.TotalQuestions : '-'}</span></div>
+              <div style="font-size: 3rem; color: #059669; font-weight: bold; line-height: 1;"><span id="res-score">-</span><span style="font-size: 1.2rem; color: #666;">/${currentScanSubject ? currentScanSubject.TotalQuestions : '-'}</span></div>
             </div>
             
             <div id="res-details" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem; background: #f9fafb; border-radius: 6px; padding: 10px; border: 1px solid #eee;">
@@ -220,14 +220,14 @@ function gradeOMR() {
     const isCorrect = (readAns === correctAns);
     if (isCorrect) score++;
     
-    detailHtml += \`
+    detailHtml += `
       <div style="display:flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0;">
-        <span>ข้อ \${i}: ตรวจพบ <strong>\${readAns}</strong></span>
-        \${isCorrect 
+        <span>ข้อ ${i}: ตรวจพบ <strong>${readAns}</strong></span>
+        ${isCorrect 
           ? '<span style="color: #059669; font-weight:bold;"><i class="ph ph-check"></i> ถูก (+1)</span>' 
-          : \`<span style="color: #dc2626;"><i class="ph ph-x"></i> ผิด (เฉลย \${correctAns})</span>\`}
+          : `<span style="color: #dc2626;"><i class="ph ph-x"></i> ผิด (เฉลย ${correctAns})</span>`}
       </div>
-    \`;
+    `;
   }
   
   // Random student ID for demo
@@ -261,7 +261,7 @@ async function saveResult() {
     const uploadRes = await apiCall({ 
       action: 'uploadImage', 
       base64Data: base64Image,
-      filename: \`SCAN_\${lastScanResult.StudentID}_\${Date.now()}.jpg\`
+      filename: `SCAN_${lastScanResult.StudentID}_${Date.now()}.jpg`
     });
     if (uploadRes && uploadRes.success) driveUrl = uploadRes.url;
   }
