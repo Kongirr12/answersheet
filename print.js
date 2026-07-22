@@ -74,25 +74,9 @@ function printOMRSheet(subjectId, format = 'circle') {
         <div class="marker m-bl"></div>
         <div class="marker m-br"></div>
 
-        <div class="header">
-          <h1>กระดาษคำตอบ (OMR)</h1>
-          <div class="info-row">
-            <span><strong>วิชา:</strong> ${subject.Name} (${subject.Code})</span>
-            <span><strong>ประเภท:</strong> ${subject.ExamType || 'ทั่วไป'}</span>
-            <span><strong>ชั้นเรียน:</strong> ${subject.Class}</span>
-          </div>
-          <div class="info-row" style="margin-top: 15px;">
-            <span><strong>ชื่อ-สกุล:</strong> _________________________________________</span>
-            <span><strong>รหัสข้อสอบ:</strong> ${subject.SubjectID}</span>
-          </div>
-          <div style="margin-top: 10px; font-size: 13px; color: #444; border: 1px solid #ccc; padding: 5px; border-radius: 4px; display: inline-block;">
-            <strong>คำชี้แจง:</strong> ให้นักเรียน <u>ระบายทึบ</u> หรือ <u>กากบาท (X)</u> ลงใน${format === 'square' ? 'ช่องสี่เหลี่ยม' : 'วงกลม'}ให้ชัดเจน
-          </div>
-        </div>
-
-        <div class="omr-section">
-          <!-- ID Marking -->
-          <div class="id-grid">
+        <div style="display: flex; gap: 30px;">
+          <!-- ID Marking on Left -->
+          <div class="id-grid" style="margin-right: 0; margin-top: 10px; width: 85px;">
             <h3 style="font-size: 14px; margin-bottom: 5px;">เลขที่ (2 หลัก)</h3>
             <div style="font-size: 11px; color: #666; margin-bottom: 5px;">(เช่น เลขที่ 5 ให้ฝน 05)</div>
             <table>
@@ -107,9 +91,29 @@ function printOMRSheet(subjectId, format = 'circle') {
             </table>
           </div>
 
-          <!-- Question Marking -->
-          <div class="answers-grid">
-            ${generateAnswerColumns(subject.TotalQuestions)}
+          <!-- Header and Answers on Right -->
+          <div style="flex: 1;">
+            <div class="header" style="margin-bottom: 10px; text-align: center;">
+              <h1>กระดาษคำตอบ (OMR)</h1>
+              <div style="font-size: 11px; color: #666; margin-top: -8px; margin-bottom: 15px;">พัฒนาโดย คุณครูก้องนที อุ่นเจริญ</div>
+              
+              <div class="info-row">
+                <span><strong>วิชา:</strong> ${subject.Name} (${subject.Code})</span>
+                <span><strong>ประเภท:</strong> ${subject.ExamType || 'ทั่วไป'}</span>
+                <span><strong>ชั้นเรียน:</strong> ${subject.Class}</span>
+              </div>
+              <div class="info-row" style="margin-top: 10px;">
+                <span><strong>ชื่อ-สกุล:</strong> ___________________________________</span>
+                <span><strong>รหัสข้อสอบ:</strong> ${subject.SubjectID}</span>
+              </div>
+              <div style="margin-top: 10px; font-size: 13px; color: #444; border: 1px solid #ccc; padding: 5px; border-radius: 4px; display: inline-block;">
+                <strong>คำชี้แจง:</strong> ให้นักเรียน <u>ระบายทึบ</u> หรือ <u>กากบาท (X)</u> ลงใน${format === 'square' ? 'ช่องสี่เหลี่ยม' : 'วงกลม'}ให้ชัดเจน
+              </div>
+            </div>
+
+            <div class="answers-grid" style="margin-top: 20px;">
+              ${generateAnswerColumns(subject.TotalQuestions)}
+            </div>
           </div>
         </div>
         

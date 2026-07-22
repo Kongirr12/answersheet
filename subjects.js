@@ -100,8 +100,27 @@ async function renderSubjectsPage() {
              </div>
           </div>
           <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 500;"><i class="ph ph-text-aa"></i> ออกแบบข้อเขียน (พิมพ์โจทย์ / แทรกรูปภาพ)</label>
-            <div id="quill-editor" style="height: 300px; background: white; border-radius: 0 0 6px 6px;"></div>
+            <label style="display: block; margin-bottom: 10px; font-weight: 500;">
+              <i class="ph ph-text-aa"></i> ออกแบบข้อเขียน 
+              <span style="font-size: 0.85rem; color: var(--primary-color); background: rgba(79, 70, 229, 0.1); padding: 4px 8px; border-radius: 12px; margin-left: 10px;">
+                <i class="ph ph-monitor"></i> จำลองความกว้างกระดาษ A4 ของจริง
+              </span>
+            </label>
+            
+            <style>
+              .ql-editor { font-family: 'Kanit', sans-serif !important; font-size: 15px; }
+              .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #e5e7eb !important; background: #fafafa; }
+              .ql-container.ql-snow { border: none !important; }
+            </style>
+
+            <div style="background: #e5e7eb; padding: 30px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: center; overflow-x: auto; overflow-y: auto; max-height: 500px;">
+              <div style="width: 170mm; flex-shrink: 0; min-height: 200mm; background: white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                <div style="padding: 15px 15px 0 15px; border-bottom: 2px dashed #ccc; font-size: 1.1rem; font-weight: 600; color: #444;">
+                  ส่วนที่ 2: ข้อสอบอัตนัย
+                </div>
+                <div id="quill-editor" style="flex: 1; padding-bottom: 20px;"></div>
+              </div>
+            </div>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
             <button type="button" class="btn btn-outline" onclick="closeSubjectModal()" style="padding: 10px 25px;">ยกเลิก</button>
