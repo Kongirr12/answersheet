@@ -14,6 +14,7 @@ function printOMRSheet(subjectId, format = 'circle') {
       <style>
         .subjective-content table { border-collapse: collapse; width: 100%; }
         .subjective-content table, .subjective-content th, .subjective-content td { border: 1px solid black; padding: 5px; }
+        .subjective-content { overflow-wrap: break-word; word-break: break-all; max-width: 100%; }
         body { font-family: 'Kanit', sans-serif; margin: 0; padding: 0; background: #fff; }
         .page { width: 210mm; height: 297mm; position: relative; padding: 20mm; box-sizing: border-box; }
         .marker { width: 30px; height: 30px; background: black; position: absolute; border-radius: 50%; }

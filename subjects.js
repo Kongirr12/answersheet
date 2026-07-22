@@ -163,7 +163,7 @@ async function renderSubjectsPage() {
         'bold italic underline | forecolor backcolor | ' +
         'alignleft aligncenter alignright alignjustify | ' +
         'bullist numlist outdent indent | table image | removeformat',
-      content_style: "body { font-family: 'Kanit', sans-serif; font-size: 15px; }",
+      content_style: "body { font-family: 'Kanit', sans-serif; font-size: 15px; margin: 0; padding: 0; overflow-wrap: break-word; word-break: break-all; } p { margin: 0 0 10px 0; }",
       font_family_formats: 'Kanit=Kanit,sans-serif; Tahoma=tahoma,arial,helvetica,sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times;',
       promotion: false,
       branding: false
