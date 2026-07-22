@@ -37,10 +37,17 @@ function switchLoginRole(role) {
 async function handleStudentLogin(e) {
   e.preventDefault();
   const subjCode = document.getElementById('student-subj-input').value.trim().toUpperCase();
-  const seatNo = document.getElementById('student-id-input').value.trim();
+  let seatNo = document.getElementById('student-id-input').value.trim();
+  
+  // UX Improvement: If student types '5', auto convert to '05'
+  if (seatNo.length === 1) {
+    seatNo = seatNo.padStart(2, '0');
+    // update the input visually too
+    document.getElementById('student-id-input').value = seatNo;
+  }
   
   if (!subjCode || seatNo.length !== 2) {
-    Swal.fire('ข้อผิดพลาด', 'กรุณากรอกรหัสวิชา และ เลขที่ให้ครบ 2 หลัก (เช่น 05)', 'error');
+    Swal.fire('ข้อผิดพลาด', 'กรุณากรอกรหัสวิชา และ เลขที่ให้ครบถ้วน', 'error');
     return;
   }
   

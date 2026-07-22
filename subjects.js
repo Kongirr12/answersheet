@@ -1,5 +1,6 @@
 // ====== SUBJECTS & EXAMS LOGIC ======
 let globalSubjects = [];
+let currentEditingSubjectId = null;
 
 async function renderSubjectsPage() {
   document.getElementById('page-content').innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดข้อมูลรายวิชา...</div>';
@@ -41,6 +42,9 @@ async function renderSubjectsPage() {
               <td>${sub.Class}</td>
               <td>${sub.TotalQuestions}</td>
               <td style="text-align: center;">
+                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="editSubject('${sub.SubjectID}')">
+                  <i class="ph ph-pencil"></i> แก้ไข
+                </button>
                 <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="manageKeys('${sub.SubjectID}')">
                   <i class="ph ph-list-checks"></i> เฉลย
                 </button>
@@ -139,6 +143,34 @@ async function renderSubjectsPage() {
 }
 
 function openSubjectModal() {
+  currentEditingSubjectId = null;
+  document.getElementById('subject-modal-title').innerText = 'เพิ่มรายวิชาใหม่';
+  document.getElementById('subj-code').value = '';
+  document.getElementById('subj-name').value = '';
+  document.getElementById('subj-class').value = '';
+  document.getElementById('subj-type').value = 'กลางภาค';
+  document.getElementById('subj-qty').value = 20;
+  document.getElementById('subj-written-score').value = 0;
+  if (window.quillEditor) window.quillEditor.root.innerHTML = '';
+  document.getElementById('subject-modal').style.display = 'flex';
+}
+
+function editSubject(id) {
+  const subject = globalSubjects.find(s => s.SubjectID === id);
+  if (!subject) return;
+  
+  currentEditingSubjectId = id;
+  document.getElementById('subject-modal-title').innerText = 'แก้ไขรายวิชา';
+  document.getElementById('subj-code').value = subject.Code || '';
+  document.getElementById('subj-name').value = subject.Name || '';
+  document.getElementById('subj-class').value = subject.Class || '';
+  document.getElementById('subj-type').value = subject.ExamType || 'กลางภาค';
+  document.getElementById('subj-qty').value = subject.TotalQuestions || 20;
+  document.getElementById('subj-written-score').value = subject.MaxWrittenScore || 0;
+  if (window.quillEditor) {
+    window.quillEditor.root.innerHTML = subject.WrittenContent || '';
+  }
+  
   document.getElementById('subject-modal').style.display = 'flex';
 }
 
@@ -177,7 +209,7 @@ async function saveSubject(e) {
                       ? window.quillEditor.root.innerHTML : '';
 
   const payload = {
-    SubjectID: 'SUB' + Date.now(),
+    SubjectID: currentEditingSubjectId ? currentEditingSubjectId : ('SUB' + Date.now()),
     Code: document.getElementById('subj-code').value,
     Name: document.getElementById('subj-name').value,
     Class: document.getElementById('subj-class').value,
