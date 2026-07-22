@@ -37,7 +37,7 @@ function renderScanPage() {
     <div class="card" style="text-align: center;">
       <h2 style="margin-bottom: 20px;">สแกนกระดาษคำตอบ (AI OMR)</h2>
       
-      <div style="max-width: 500px; margin: 0 auto 30px auto; text-align: left; background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+      <div style="max-width: 500px; margin: 0 auto 30px auto; text-align: left; background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: var(--glass-border);">
         <label style="font-weight: bold; margin-bottom: 8px; display: block;">1. เลือกวิชาที่ต้องการตรวจ:</label>
         <select id="scan-subject" class="form-control" style="width: 100%; padding: 10px; font-family: Kanit; margin-bottom: 10px;" onchange="loadAnswerKeysForScan()">
           <option value="">-- กรุณาเลือกวิชา --</option>
@@ -59,13 +59,13 @@ function renderScanPage() {
       <div id="scanner-workspace" style="display: none; text-align: left;">
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
           <!-- Left: Canvas -->
-          <div style="flex: 1; min-width: 300px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+          <div style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 12px; border: var(--glass-border);">
             <h4 style="margin-bottom: 10px; color: var(--primary-color);"><i class="ph ph-cpu"></i> ประมวลผลภาพ (Computer Vision)</h4>
             <canvas id="omr-canvas" style="width: 100%; max-width: 500px; border: 1px solid #ccc; border-radius: 4px; display: block; margin: 0 auto;"></canvas>
           </div>
           
           <!-- Right: Results -->
-          <div style="flex: 1; min-width: 300px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+          <div style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 12px; border: var(--glass-border);">
             <h4 style="margin-bottom: 15px; color: var(--secondary-color);"><i class="ph ph-list-checks"></i> ผลการตรวจ</h4>
             
             <p style="margin-bottom: 8px;"><strong>รหัสนักเรียน:</strong> <span id="res-student" style="color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">-</span></p>
@@ -76,7 +76,7 @@ function renderScanPage() {
               <div style="font-size: 3rem; color: #059669; font-weight: bold; line-height: 1;"><span id="res-score">-</span><span style="font-size: 1.2rem; color: #666;">/${currentScanSubject ? currentScanSubject.TotalQuestions : '-'}</span></div>
             </div>
             
-            <div id="res-details" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem; background: #f9fafb; border-radius: 6px; padding: 10px; border: 1px solid #eee;">
+            <div id="res-details" style="max-height: 250px; overflow-y: auto; font-size: 0.9rem; background: rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; border: var(--glass-border);">
               <!-- Detail rows here -->
             </div>
             
@@ -221,7 +221,7 @@ function gradeOMR() {
     if (isCorrect) score++;
     
     detailHtml += `
-      <div style="display:flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0;">
+      <div style="display:flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.4); padding: 8px 0;">
         <span>ข้อ ${i}: ตรวจพบ <strong>${readAns}</strong></span>
         ${isCorrect 
           ? '<span style="color: #059669; font-weight:bold;"><i class="ph ph-check"></i> ถูก (+1)</span>' 

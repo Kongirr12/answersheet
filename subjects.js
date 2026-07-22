@@ -21,25 +21,25 @@ async function renderSubjectsPage() {
         </button>
       </div>
       
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+      <table class="glass-table">
         <thead>
-          <tr style="background-color: var(--background-color); border-bottom: 2px solid var(--border-color); text-align: left;">
-            <th style="padding: 12px;">รหัสวิชา</th>
-            <th style="padding: 12px;">ชื่อวิชา</th>
-            <th style="padding: 12px;">ชั้นเรียน</th>
-            <th style="padding: 12px;">จำนวนข้อ</th>
-            <th style="padding: 12px; text-align: center;">จัดการ</th>
+          <tr>
+            <th>รหัสวิชา</th>
+            <th>ชื่อวิชา</th>
+            <th>ชั้นเรียน</th>
+            <th>จำนวนข้อ</th>
+            <th style="text-align: center;">จัดการ</th>
           </tr>
         </thead>
         <tbody>
-          ${globalSubjects.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding: 20px; color:#999;">ยังไม่มีรายวิชา</td></tr>' : 
+          ${globalSubjects.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding: 20px; color:var(--text-secondary);">ยังไม่มีรายวิชา</td></tr>' : 
             globalSubjects.map(sub => `
-            <tr style="border-bottom: 1px solid var(--border-color);">
-              <td style="padding: 12px;">${sub.Code || sub.SubjectID}</td>
-              <td style="padding: 12px;">${sub.Name}</td>
-              <td style="padding: 12px;">${sub.Class}</td>
-              <td style="padding: 12px;">${sub.TotalQuestions}</td>
-              <td style="padding: 12px; text-align: center;">
+            <tr>
+              <td>${sub.Code || sub.SubjectID}</td>
+              <td>${sub.Name}</td>
+              <td>${sub.Class}</td>
+              <td>${sub.TotalQuestions}</td>
+              <td style="text-align: center;">
                 <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="manageKeys('${sub.SubjectID}')">
                   <i class="ph ph-list-checks"></i> เฉลย
                 </button>
@@ -54,7 +54,7 @@ async function renderSubjectsPage() {
     </div>
 
     <!-- Subject Modal (Hidden by default) -->
-    <div id="subject-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div id="subject-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); align-items: center; justify-content: center; z-index: 1000;">
       <div class="card" style="width: 500px; max-width: 90%;">
         <h3 style="margin-bottom: 20px;" id="subject-modal-title">เพิ่มรายวิชาใหม่</h3>
         <form onsubmit="saveSubject(event)">
@@ -85,10 +85,10 @@ async function renderSubjectsPage() {
     </div>
 
     <!-- Answer Keys Modal -->
-    <div id="keys-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div id="keys-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); align-items: center; justify-content: center; z-index: 1000;">
       <div class="card" style="width: 600px; max-width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
         <h3 style="margin-bottom: 10px;" id="keys-modal-title">จัดการเฉลย</h3>
-        <p style="color: #666; margin-bottom: 20px;" id="keys-modal-subtitle">รหัสวิชา: -</p>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;" id="keys-modal-subtitle">รหัสวิชา: -</p>
         
         <div id="keys-container" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding-right: 10px; margin-bottom: 20px;">
           <!-- Dynamically generated inputs -->
@@ -161,7 +161,7 @@ async function manageKeys(id) {
     const ans = existing ? existing.CorrectAnswer : '';
     
     html += `
-      <div style="background: var(--background-color); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color);">
+      <div style="background: rgba(255,255,255,0.4); padding: 10px; border-radius: 10px; text-align: center; border: var(--glass-border);">
         <div style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">ข้อ ${i}</div>
         <select id="key-input-${i}" class="form-control" style="width: 100%; padding: 5px; text-align: center;">
           <option value="">-</option>

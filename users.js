@@ -24,33 +24,33 @@ async function renderUsersPage() {
             <h3 style="margin: 0;">บัญชีผู้ดูแล/คุณครู</h3>
             <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.9rem;" onclick="showAddUserModal()">+ เพิ่มบัญชี</button>
           </div>
-          <table style="width: 100%; border-collapse: collapse;">
+          <table class="glass-table">
             <thead>
-              <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
-                <th style="padding: 10px;">ชื่อ / Username</th>
-                <th style="padding: 10px;">บทบาท</th>
-                <th style="padding: 10px;">สถานะ</th>
-                <th style="padding: 10px; text-align: center;">จัดการ</th>
+              <tr>
+                <th>ชื่อ / Username</th>
+                <th>บทบาท</th>
+                <th>สถานะ</th>
+                <th style="text-align: center;">จัดการ</th>
               </tr>
             </thead>
             <tbody>
-              ${teachers.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding: 10px;">ไม่มีข้อมูล</td></tr>' : 
+              ${teachers.length === 0 ? '<tr><td colspan="4" style="text-align:center;">ไม่มีข้อมูล</td></tr>' : 
                 teachers.map(t => `
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 10px;">
-                    <div>${t.name}</div>
+                <tr>
+                  <td>
+                    <div style="font-weight: 500;">${t.name}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary);">${t.username}</div>
                   </td>
-                  <td style="padding: 10px;">${t.role}</td>
-                  <td style="padding: 10px;">
-                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: ${t.status === 'Active' ? '#D1FAE5' : '#FEF3C7'}; color: ${t.status === 'Active' ? '#059669' : '#D97706'};">
+                  <td>${t.role}</td>
+                  <td>
+                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: ${t.status === 'Active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}; color: ${t.status === 'Active' ? '#059669' : '#D97706'}; border: 1px solid ${t.status === 'Active' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'};">
                       ${t.status}
                     </span>
                   </td>
-                  <td style="padding: 10px; text-align: center;">
+                  <td style="text-align: center;">
                     ${(t.username.toLowerCase() !== 'admin' && t.username !== currentUser.username) 
-                      ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.85rem; color: var(--danger-color); border-color: var(--danger-color);" onclick="deleteUser('${t.username}')"><i class="ph ph-trash"></i> ลบ</button>` 
-                      : '<span style="font-size: 0.8rem; color: #ccc;">-</span>'}
+                      ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.85rem; color: var(--danger-color); border-color: rgba(239, 68, 68, 0.3);" onclick="deleteUser('${t.username}')"><i class="ph ph-trash"></i> ลบ</button>` 
+                      : '<span style="font-size: 0.8rem; opacity: 0.5;">-</span>'}
                   </td>
                 </tr>
               `).join('')}

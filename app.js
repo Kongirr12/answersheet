@@ -161,17 +161,17 @@ async function renderDashboardPage() {
         <h2 style="margin-bottom: 16px;">ภาพรวมระบบ (Dashboard)</h2>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-          <div style="background: var(--primary-color); color: white; padding: 20px; border-radius: 8px;">
-            <div style="font-size: 0.9rem; opacity: 0.9;">จำนวนวิชาทั้งหมด</div>
-            <div style="font-size: 2rem; font-weight: 600;">${stats.totalSubjects}</div>
+          <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.8), rgba(99, 102, 241, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-books"></i> จำนวนวิชาทั้งหมด</div>
+            <div style="font-size: 2.5rem; font-weight: 700;">${stats.totalSubjects}</div>
           </div>
-          <div style="background: var(--secondary-color); color: white; padding: 20px; border-radius: 8px;">
-            <div style="font-size: 0.9rem; opacity: 0.9;">กระดาษคำตอบที่สแกนแล้ว</div>
-            <div style="font-size: 2rem; font-weight: 600;">${stats.totalScans}</div>
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(52, 211, 153, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-scan"></i> กระดาษคำตอบที่สแกนแล้ว</div>
+            <div style="font-size: 2.5rem; font-weight: 700;">${stats.totalScans}</div>
           </div>
-          <div style="background: #10B981; color: white; padding: 20px; border-radius: 8px;">
-            <div style="font-size: 0.9rem; opacity: 0.9;">สถานะระบบ</div>
-            <div style="font-size: 1.5rem; font-weight: 600; margin-top: 5px;">ออนไลน์</div>
+          <div style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(244, 114, 182, 0.6)); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+            <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 5px;"><i class="ph ph-activity"></i> สถานะระบบ</div>
+            <div style="font-size: 1.8rem; font-weight: 700; margin-top: 5px;">ออนไลน์ปกติ</div>
           </div>
         </div>
       </div>
