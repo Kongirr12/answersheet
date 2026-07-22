@@ -138,77 +138,199 @@ function processOMRImage(img) {
   canvas.height = img.height * scale;
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   
+// Helper for clustering values within a threshold
+function clusterByThreshold(values, threshold) {
+  if (values.length === 0) return [];
+  values.sort((a, b) => a - b);
+  let clusters = [];
+  let currentGroup = [values[0]];
+  for (let i = 1; i < values.length; i++) {
+    if (values[i] - values[i-1] > threshold) {
+      clusters.push(currentGroup.reduce((a,b)=>a+b,0) / currentGroup.length);
+      currentGroup = [values[i]];
+    } else {
+      currentGroup.push(values[i]);
+    }
+  }
+  clusters.push(currentGroup.reduce((a,b)=>a+b,0) / currentGroup.length);
+  return clusters;
+}
+
+let lastExtractedAnswers = [];
+let lastExtractedStudentId = "";
+let lastScanConfidence = 0;
+
+async function processImage(src) {
+  const canvas = document.getElementById('omr-canvas');
   try {
-    // 1. Read into OpenCV Mat
-    let src = cv.imread(canvas);
     let gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     
-    // 2. Blur and Threshold
     let blurred = new cv.Mat();
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
     
     let thresh = new cv.Mat();
     cv.adaptiveThreshold(blurred, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
     
-    // Note: A full robust OMR algorithm would now find contours, detect 4 corner markers,
-    // apply getPerspectiveTransform, and then slice the ID/Answer grids accurately.
-    // For this implementation, we will use a heuristic approach to find circular contours (bubbles).
-    
+    // Find Markers (largest 4 contours with circular/square aspect ratio)
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     
-    let bubbles = [];
+    let candidates = [];
     for (let i = 0; i < contours.size(); i++) {
       let cnt = contours.get(i);
       let rect = cv.boundingRect(cnt);
-      let aspect = rect.width / rect.height;
       let area = cv.contourArea(cnt);
-      
-      // Filter for bubble-like contours based on size and aspect ratio
-      // Relaxed area (> 20) and aspect (0.7-1.3) to support X marks (กากบาท)
-      if (area > 20 && area < 1000 && aspect >= 0.7 && aspect <= 1.3) {
-        bubbles.push(rect);
+      let aspect = rect.width / rect.height;
+      if (area > 200 && aspect > 0.6 && aspect < 1.4) {
+        candidates.push({ rect, area, center: { x: rect.x + rect.width/2, y: rect.y + rect.height/2 } });
       }
     }
     
-    // Sort bubbles top-to-bottom, then left-to-right (very rough grouping)
-    // In a real scenario with perspective transform, we would slice fixed regions.
+    candidates.sort((a, b) => b.area - a.area);
+    let markers = candidates.slice(0, 4);
     
-    // To provide a working experience without perfect camera alignment, 
-    // we will simulate the AI's extraction mapped to the answer keys,
-    // but visually draw OpenCV analysis on the canvas to show it working.
-    
-    // Draw detected contours to show AI vision
-    cv.drawContours(src, contours, -1, new cv.Scalar(0, 255, 0, 255), 1);
-    
-    for (let b of bubbles) {
-      let pt1 = new cv.Point(b.x, b.y);
-      let pt2 = new cv.Point(b.x + b.width, b.y + b.height);
-      cv.rectangle(src, pt1, pt2, new cv.Scalar(255, 0, 0, 255), 2);
+    if (markers.length < 4) {
+      throw new Error("ไม่พบจุดอ้างอิง 4 มุมกระดาษ (Markers)");
     }
     
-    cv.imshow(canvas, src);
+    // Sort markers: top-left, top-right, bottom-right, bottom-left
+    markers.sort((a, b) => a.center.y - b.center.y);
+    let topM = markers.slice(0, 2).sort((a, b) => a.center.x - b.center.x);
+    let botM = markers.slice(2, 4).sort((a, b) => a.center.x - b.center.x);
+    let tl = topM[0].center, tr = topM[1].center;
+    let bl = botM[0].center, br = botM[1].center;
+    
+    // Warp Perspective to 840 x 1224 (A4 ratio approximation)
+    let w = 840, h = 1224;
+    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
+    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, w, 0, w, h, 0, h]);
+    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+    
+    let warped = new cv.Mat();
+    cv.warpPerspective(src, warped, M, new cv.Size(w, h), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+    
+    let wGray = new cv.Mat();
+    cv.cvtColor(warped, wGray, cv.COLOR_RGBA2GRAY);
+    let wThresh = new cv.Mat();
+    cv.adaptiveThreshold(wGray, wThresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 15, 5);
+    
+    // Find all bubbles in warped image
+    let wContours = new cv.MatVector();
+    cv.findContours(wThresh, wContours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    
+    let bubbles = [];
+    for (let i = 0; i < wContours.size(); i++) {
+      let rect = cv.boundingRect(wContours.get(i));
+      let area = cv.contourArea(wContours.get(i));
+      let aspect = rect.width / rect.height;
+      if (area > 200 && area < 1500 && aspect > 0.6 && aspect < 1.4) {
+        bubbles.push({ rect, center: { x: rect.x + rect.width/2, y: rect.y + rect.height/2 } });
+      }
+    }
+    
+    // Split into ID Grid (< 30% width) and Answers Grid (> 30% width)
+    let splitX = w * 0.3;
+    let idBubbles = bubbles.filter(b => b.center.x < splitX);
+    let ansBubbles = bubbles.filter(b => b.center.x > splitX);
+    
+    // Process ID Grid (Seat Number)
+    let idXClusters = clusterByThreshold(idBubbles.map(b => b.center.x), 15);
+    let idYClusters = clusterByThreshold(idBubbles.map(b => b.center.y), 15);
+    
+    if (idXClusters.length !== 2 || idYClusters.length !== 10) {
+      console.warn("ID Grid fallback", idXClusters.length, idYClusters.length);
+      if(idXClusters.length < 2) idXClusters = [61, 95]; 
+      if(idYClusters.length < 10) idYClusters = [150, 185, 220, 255, 290, 325, 360, 395, 430, 465];
+    }
+    
+    let seatNumber = "";
+    for (let col = 0; col < 2; col++) {
+      let maxDensity = 0;
+      let selectedDigit = "?";
+      for (let row = 0; row < 10; row++) {
+        let bx = idXClusters[col] - 12; // box size ~24x24
+        let by = idYClusters[row] - 12;
+        let rect = new cv.Rect(Math.max(0, Math.floor(bx)), Math.max(0, Math.floor(by)), 24, 24);
+        let roi = wThresh.roi(rect);
+        let density = cv.countNonZero(roi) / (24 * 24);
+        roi.delete();
+        cv.rectangle(warped, new cv.Point(bx, by), new cv.Point(bx+24, by+24), new cv.Scalar(255,0,0,255), 1);
+        if (density > maxDensity && density > 0.30) {
+          maxDensity = density;
+          selectedDigit = row.toString();
+        }
+      }
+      seatNumber += selectedDigit;
+    }
+    
+    // Process Answers Grid
+    const totalQ = currentScanSubject ? parseInt(currentScanSubject.TotalQuestions) || 20 : 20;
+    const choicesList = ['ก','ข','ค','ง'];
+    
+    let ansXClusters = clusterByThreshold(ansBubbles.map(b => b.center.x), 15);
+    let ansYClusters = clusterByThreshold(ansBubbles.map(b => b.center.y), 15);
+    
+    let expectedCols = Math.ceil(totalQ / 10) * 4;
+    
+    // Fallback if clustering misses columns/rows due to faint print
+    if (ansYClusters.length < 10) ansYClusters = [115,150,185,220,255,290,325,360,395,430];
+    
+    let extractedAnswers = [];
+    let detectedCount = 0;
+    
+    for (let q = 1; q <= totalQ; q++) {
+      let colIdx = Math.floor((q - 1) / 10);
+      let rowIdx = (q - 1) % 10;
+      
+      let maxDensity = 0;
+      let selectedChoice = "?";
+      
+      for (let c = 0; c < 4; c++) {
+        let xIdx = colIdx * 4 + c;
+        if (xIdx >= ansXClusters.length || rowIdx >= ansYClusters.length) continue;
+        
+        let bx = ansXClusters[xIdx] - 12;
+        let by = ansYClusters[rowIdx] - 12;
+        let rect = new cv.Rect(Math.max(0, Math.floor(bx)), Math.max(0, Math.floor(by)), 24, 24);
+        
+        let roi = wThresh.roi(rect);
+        let density = cv.countNonZero(roi) / (24 * 24);
+        roi.delete();
+        
+        cv.rectangle(warped, new cv.Point(bx, by), new cv.Point(bx+24, by+24), new cv.Scalar(0,255,0,255), 1);
+        
+        if (density > maxDensity && density > 0.30) { // 30% threshold for cross/shade
+          maxDensity = density;
+          selectedChoice = choicesList[c];
+        }
+      }
+      
+      if (selectedChoice !== "?") detectedCount++;
+      extractedAnswers.push({ q: q, ans: selectedChoice });
+    }
+    
+    lastExtractedStudentId = seatNumber.includes("?") ? "XX" : seatNumber;
+    lastExtractedAnswers = extractedAnswers;
+    lastScanConfidence = Math.round((detectedCount / totalQ) * 100);
+    
+    cv.imshow(canvas, warped); // Show aligned output
     
     src.delete(); gray.delete(); blurred.delete(); thresh.delete(); contours.delete(); hierarchy.delete();
+    warped.delete(); wGray.delete(); wThresh.delete(); wContours.delete(); srcTri.delete(); dstTri.delete(); M.delete();
     
-    // Proceed to grading logic
-    setTimeout(() => gradeOMR(), 800);
+    setTimeout(() => gradeOMR(), 100);
     
   } catch (err) {
-    console.error("OpenCV Processing Error:", err);
-    Swal.fire('ข้อผิดพลาดจาก AI', 'ไม่สามารถอ่านกระดาษได้ โปรดถ่ายรูปให้ชัดเจนและเห็นมุมกระดาษครบถ้วน', 'error');
-    document.getElementById('res-details').innerHTML = '<span style="color:red;">การสแกนล้มเหลว</span>';
+    console.error("OpenCV Error:", err);
+    Swal.fire('ข้อผิดพลาดจาก AI', 'อ่านกระดาษล้มเหลว โปรดตรวจสอบว่าเห็นจุดดำ 4 มุมครบถ้วน หรือมีแสงสว่างเพียงพอ', 'error');
+    document.getElementById('res-details').innerHTML = '<span style="color:red;">สแกนล้มเหลว</span>';
   }
 }
 
 function gradeOMR() {
-  // Simulated grading based on the Answer Keys loaded
-  // In the full OpenCV implementation, this would read the exact white pixels inside each bubble contour.
-  
   const totalQ = currentScanSubject ? parseInt(currentScanSubject.TotalQuestions) || 20 : 20;
-  
   let score = 0;
   let detailHtml = '';
   
@@ -216,12 +338,8 @@ function gradeOMR() {
     const keyObj = currentAnswerKeys.find(k => parseInt(k.QuestionNo) === i);
     const correctAns = keyObj ? keyObj.CorrectAnswer : 'ก';
     
-    // Simulate AI reading with 90% accuracy for demo purposes, or picking random if blurry
-    const choices = ['ก','ข','ค','ง'];
-    let readAns = correctAns; 
-    if (Math.random() > 0.85) {
-      readAns = choices[Math.floor(Math.random() * choices.length)]; // AI mistake or student marked wrong
-    }
+    const readAnsObj = lastExtractedAnswers.find(a => a.q === i);
+    const readAns = readAnsObj ? readAnsObj.ans : "?";
     
     const isCorrect = (readAns === correctAns);
     if (isCorrect) score++;
@@ -236,11 +354,9 @@ function gradeOMR() {
     `;
   }
   
-  // Random Seat Number (01-50) for demo
-  const studentId = String(Math.floor(1 + Math.random() * 50)).padStart(2, '0');
-  
-  document.getElementById('res-student').innerText = studentId;
-  document.getElementById('res-conf').innerHTML = '<span style="color: green;">92% (ดีมาก)</span>';
+  document.getElementById('res-student').innerText = lastExtractedStudentId;
+  let confColor = lastScanConfidence > 90 ? 'green' : (lastScanConfidence > 70 ? 'orange' : 'red');
+  document.getElementById('res-conf').innerHTML = `<span style="color: ${confColor};">${lastScanConfidence}%</span>`;
   document.getElementById('res-score').innerText = score;
   document.getElementById('res-details').innerHTML = detailHtml;
   
@@ -257,9 +373,9 @@ function gradeOMR() {
   }
   
   lastScanResult = {
-    StudentID: studentId,
+    StudentID: lastExtractedStudentId,
     Score: score,
-    Confidence: '92%',
+    Confidence: lastScanConfidence + '%',
     WrittenScore: 0,
     TotalScore: score
   };
