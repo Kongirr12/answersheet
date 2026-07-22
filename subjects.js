@@ -1,10 +1,17 @@
 // ====== SUBJECTS & EXAMS LOGIC ======
-let mockSubjects = [
-  { id: 'SUB001', code: 'MATH101', name: 'คณิตศาสตร์พื้นฐาน', class: 'ม.4/1', semester: '1/2569', type: 'กลางภาค', totalQuestions: 20 },
-  { id: 'SUB002', code: 'ENG101', name: 'ภาษาอังกฤษ', class: 'ม.4/1', semester: '1/2569', type: 'ปลายภาค', totalQuestions: 40 },
-];
+let globalSubjects = [];
 
-function renderSubjectsPage() {
+async function renderSubjectsPage() {
+  document.getElementById('page-content').innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดข้อมูลรายวิชา...</div>';
+  
+  const res = await apiCall({ action: 'getSubjects' });
+  if (res && res.success) {
+    globalSubjects = res.data;
+  } else {
+    Swal.fire('คำเตือน', 'ดึงข้อมูลรายวิชาไม่สำเร็จ กรุณาตรวจสอบตาราง Subjects', 'warning');
+    globalSubjects = [];
+  }
+
   const content = `
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -20,24 +27,23 @@ function renderSubjectsPage() {
             <th style="padding: 12px;">รหัสวิชา</th>
             <th style="padding: 12px;">ชื่อวิชา</th>
             <th style="padding: 12px;">ชั้นเรียน</th>
-            <th style="padding: 12px;">ประเภท</th>
             <th style="padding: 12px;">จำนวนข้อ</th>
             <th style="padding: 12px; text-align: center;">จัดการ</th>
           </tr>
         </thead>
         <tbody>
-          ${mockSubjects.map(sub => `
+          ${globalSubjects.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding: 20px; color:#999;">ยังไม่มีรายวิชา</td></tr>' : 
+            globalSubjects.map(sub => `
             <tr style="border-bottom: 1px solid var(--border-color);">
-              <td style="padding: 12px;">${sub.code}</td>
-              <td style="padding: 12px;">${sub.name}</td>
-              <td style="padding: 12px;">${sub.class}</td>
-              <td style="padding: 12px;">${sub.type}</td>
-              <td style="padding: 12px;">${sub.totalQuestions}</td>
+              <td style="padding: 12px;">${sub.Code || sub.SubjectID}</td>
+              <td style="padding: 12px;">${sub.Name}</td>
+              <td style="padding: 12px;">${sub.Class}</td>
+              <td style="padding: 12px;">${sub.TotalQuestions}</td>
               <td style="padding: 12px; text-align: center;">
-                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="manageKeys('${sub.id}')">
+                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="manageKeys('${sub.SubjectID}')">
                   <i class="ph ph-list-checks"></i> เฉลย
                 </button>
-                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="printOMRSheet('${sub.id}')">
+                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="printOMRSheet('${sub.SubjectID}')">
                   <i class="ph ph-printer"></i> พิมพ์กระดาษ
                 </button>
               </td>
@@ -89,21 +95,27 @@ function closeSubjectModal() {
   document.getElementById('subject-modal').style.display = 'none';
 }
 
-function saveSubject(e) {
+async function saveSubject(e) {
   e.preventDefault();
-  const newSubj = {
-    id: 'SUB' + Math.floor(Math.random() * 1000),
-    code: document.getElementById('subj-code').value,
-    name: document.getElementById('subj-name').value,
-    class: document.getElementById('subj-class').value,
-    semester: '1/2569',
-    type: 'ทั่วไป',
-    totalQuestions: parseInt(document.getElementById('subj-qty').value)
+  const payload = {
+    SubjectID: 'SUB' + Date.now(),
+    Code: document.getElementById('subj-code').value,
+    Name: document.getElementById('subj-name').value,
+    Class: document.getElementById('subj-class').value,
+    TotalQuestions: parseInt(document.getElementById('subj-qty').value)
   };
-  mockSubjects.push(newSubj);
-  closeSubjectModal();
-  Swal.fire('สำเร็จ', 'บันทึกรายวิชาเรียบร้อยแล้ว', 'success');
-  renderSubjectsPage(); // Refresh
+  
+  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const res = await apiCall({ action: 'saveSubject', payload: payload });
+  
+  if (res && res.success) {
+    Swal.fire('สำเร็จ', 'บันทึกรายวิชาเรียบร้อยแล้ว', 'success');
+    closeSubjectModal();
+    renderSubjectsPage(); // Refresh
+  } else {
+    Swal.fire('ข้อผิดพลาด', res ? res.message : 'บันทึกไม่สำเร็จ', 'error');
+  }
 }
 
 function manageKeys(id) {

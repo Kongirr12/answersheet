@@ -120,9 +120,25 @@ function simulateOMRResult() {
   document.getElementById('res-details').innerHTML = details;
 }
 
-function saveResult() {
-  Swal.fire('สำเร็จ', 'บันทึกคะแนนเข้าสู่ Google Sheets เรียบร้อย', 'success');
-  document.getElementById('scanner-workspace').style.display = 'none';
+async function saveResult() {
+  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  
+  const payload = {
+    ScanID: 'SCAN' + Date.now(),
+    SubjectID: 'SUB-CURRENT', // Normally selected from UI dropdown
+    StudentID: '12345',
+    Score: 18,
+    Confidence: '98%',
+    DriveImageURL: ''
+  };
+  
+  const res = await apiCall({ action: 'saveScanResult', payload: payload });
+  if (res && res.success) {
+    Swal.fire('สำเร็จ', 'บันทึกคะแนนเข้าสู่ Google Sheets เรียบร้อย', 'success');
+    document.getElementById('scanner-workspace').style.display = 'none';
+  } else {
+    Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + (res ? res.message : ''), 'error');
+  }
 }
 
 function startCamera() {
