@@ -30,9 +30,24 @@ function handleStudentLogin(e) {
   loginSuccess({ role: 'student', id: studentId, name: 'นักเรียน ' + studentId });
 }
 
-function handleGoogleLogin() {
-  // TODO: Trigger Google OAuth / Firebase Auth
-  loginSuccess({ role: 'admin', email: 'admin@school.ac.th', name: 'คุณครู Admin' });
+function handleStaffLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('staff-username-input').value.trim().toLowerCase();
+  const password = document.getElementById('staff-password-input').value.trim();
+
+  if (username === 'admin' && password === '1234') {
+    // Admin login
+    loginSuccess({ role: 'admin', name: 'แอดมินระบบ' });
+  } else if (username.startsWith('mhc') && username.length >= 5) {
+    // Teacher login (Mockup allows any password for valid teacher IDs like mhc01)
+    if (password === '') {
+      Swal.fire('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่าน', 'error');
+      return;
+    }
+    loginSuccess({ role: 'teacher', name: 'คุณครู ' + username.toUpperCase() });
+  } else {
+    Swal.fire('ข้อผิดพลาด', 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+  }
 }
 
 function loginSuccess(user) {

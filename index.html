@@ -44,13 +44,25 @@
       </form>
 
       <!-- Staff Login Form -->
-      <div id="staff-login-form" style="display: none;">
-        <p class="text-secondary text-center" style="margin-bottom: 25px; line-height: 1.6;">สำหรับผู้ดูแลระบบและคุณครู<br>กรุณาเข้าสู่ระบบด้วยบัญชี Google</p>
-        <button type="button" onclick="handleGoogleLogin()" class="btn btn-outline w-100">
-          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="24">
-          เข้าสู่ระบบด้วย Google
+      <form id="staff-login-form" style="display: none;" onsubmit="handleStaffLogin(event)">
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">รหัสผู้ใช้งาน (Admin / ครู)</label>
+          <div class="input-group">
+            <i class="ph ph-user"></i>
+            <input type="text" id="staff-username-input" placeholder="เช่น admin หรือ mhc01" style="border: none; outline: none; width: 100%; font-family: 'Kanit'; font-size: 1.05rem;">
+          </div>
+        </div>
+        <div style="margin-bottom: 25px; text-align: left;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">รหัสผ่าน</label>
+          <div class="input-group">
+            <i class="ph ph-lock"></i>
+            <input type="password" id="staff-password-input" placeholder="กรอกรหัสผ่าน" style="border: none; outline: none; width: 100%; font-family: 'Kanit'; font-size: 1.05rem;">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="ph ph-sign-in"></i> เข้าสู่ระบบ
         </button>
-      </div>
+      </form>
     </div>
   </div>
 
