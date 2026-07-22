@@ -1,6 +1,6 @@
 // ====== PRINT OMR SHEET LOGIC ======
 
-function printOMRSheet(subjectId) {
+function printOMRSheet(subjectId, format = 'circle') {
   const subject = globalSubjects.find(s => s.SubjectID === subjectId) || { Code: 'XXXX', Name: 'ไม่ระบุ', Class: 'ไม่ระบุ', TotalQuestions: 20, SubjectID: subjectId };
   
   const htmlContent = `
@@ -29,12 +29,24 @@ function printOMRSheet(subjectId) {
         .id-grid { margin-right: 40px; }
         .id-grid table { border-collapse: collapse; }
         .id-grid th { font-weight: normal; font-size: 12px; }
-        .bubble { width: 20px; height: 20px; border: 1.5px solid black; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 3px; font-size: 10px; }
+        .bubble { 
+          width: 22px; 
+          height: 22px; 
+          border: 1.5px solid black; 
+          border-radius: ${format === 'square' ? '4px' : '50%'}; 
+          display: inline-flex; 
+          align-items: center; 
+          justify-content: center; 
+          margin: 3px; 
+          font-size: 11px;
+          box-sizing: border-box;
+          flex-shrink: 0;
+        }
         
         /* Answers Grid */
         .answers-grid { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; }
-        .q-col { width: 120px; }
-        .q-row { display: flex; align-items: center; margin-bottom: 5px; }
+        .q-col { width: 125px; }
+        .q-row { display: flex; align-items: center; margin-bottom: 6px; }
         .q-num { width: 25px; text-align: right; margin-right: 10px; font-size: 14px; }
         
         @media print {
@@ -71,6 +83,9 @@ function printOMRSheet(subjectId) {
           <div class="info-row" style="margin-top: 15px;">
             <span><strong>ชื่อ-สกุล:</strong> _________________________________________</span>
             <span><strong>เลขที่:</strong> _______</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 13px; color: #444; border: 1px solid #ccc; padding: 5px; border-radius: 4px; display: inline-block;">
+            <strong>คำชี้แจง:</strong> ให้นักเรียน <u>ระบายทึบ</u> หรือ <u>กากบาท (X)</u> ลงใน${format === 'square' ? 'ช่องสี่เหลี่ยม' : 'วงกลม'}ให้ชัดเจน
           </div>
         </div>
 

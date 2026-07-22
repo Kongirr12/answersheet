@@ -43,7 +43,7 @@ async function renderSubjectsPage() {
                 <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="manageKeys('${sub.SubjectID}')">
                   <i class="ph ph-list-checks"></i> เฉลย
                 </button>
-                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="printOMRSheet('${sub.SubjectID}')">
+                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="confirmPrint('${sub.SubjectID}')">
                   <i class="ph ph-printer"></i> พิมพ์กระดาษ
                 </button>
               </td>
@@ -110,6 +110,29 @@ function openSubjectModal() {
 
 function closeSubjectModal() {
   document.getElementById('subject-modal').style.display = 'none';
+}
+
+function confirmPrint(subjectId) {
+  Swal.fire({
+    title: 'เลือกรูปแบบกระดาษคำตอบ',
+    input: 'radio',
+    inputOptions: {
+      'circle': 'แบบวงกลม (ระบายทึบ / กากบาท)',
+      'square': 'แบบช่องสี่เหลี่ยม (กากบาท)'
+    },
+    inputValue: 'circle',
+    showCancelButton: true,
+    confirmButtonText: '<i class="ph ph-printer"></i> ไปหน้าพิมพ์',
+    cancelButtonText: 'ยกเลิก',
+    customClass: {
+      confirmButton: 'btn btn-primary',
+      cancelButton: 'btn btn-outline'
+    }
+  }).then((result) => {
+    if (result.isConfirmed && result.value) {
+      printOMRSheet(subjectId, result.value);
+    }
+  });
 }
 
 async function saveSubject(e) {

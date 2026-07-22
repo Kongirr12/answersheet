@@ -162,7 +162,8 @@ function processOMRImage(img) {
       let area = cv.contourArea(cnt);
       
       // Filter for bubble-like contours based on size and aspect ratio
-      if (area > 50 && area < 1000 && aspect >= 0.8 && aspect <= 1.2) {
+      // Relaxed area (> 20) and aspect (0.7-1.3) to support X marks (กากบาท)
+      if (area > 20 && area < 1000 && aspect >= 0.7 && aspect <= 1.3) {
         bubbles.push(rect);
       }
     }
