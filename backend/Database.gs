@@ -2,6 +2,11 @@
  * Database Module for interacting with Google Sheets
  */
 
+// Run this function once from the Apps Script editor to setup sheets
+function initializeDatabase() {
+  Database.initialize();
+}
+
 const Database = (function() {
   
   // The Spreadsheet ID will be set by the user
@@ -10,6 +15,30 @@ const Database = (function() {
   function getSheet(sheetName) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     return ss.getSheetByName(sheetName);
+  }
+
+  function initialize() {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const requiredSheets = [
+      { name: 'Users', headers: ['Username', 'Password', 'Name', 'Role', 'Status'] },
+      { name: 'Students', headers: ['StudentID', 'Name', 'Class'] },
+      { name: 'Subjects', headers: ['SubjectID', 'Code', 'Name', 'Class', 'TotalQuestions'] },
+      { name: 'ScanResults', headers: ['ScanID', 'SubjectID', 'StudentID', 'Score', 'Confidence', 'DriveImageURL', 'Timestamp'] },
+      { name: 'Settings', headers: ['Key', 'Value'] }
+    ];
+
+    requiredSheets.forEach(req => {
+      let sheet = ss.getSheetByName(req.name);
+      if (!sheet) {
+        sheet = ss.insertSheet(req.name);
+        sheet.appendRow(req.headers);
+        
+        // Auto-populate default admin if it's the Users sheet
+        if (req.name === 'Users') {
+          sheet.appendRow(['admin', '1234', 'แอดมินระบบ', 'admin', 'Active']);
+        }
+      }
+    });
   }
 
   function getSheetDataAsObjects(sheet) {
@@ -123,6 +152,7 @@ const Database = (function() {
   }
 
   return {
+    initialize: initialize,
     loginStaff: loginStaff,
     addUser: addUser,
     getSubjects: getSubjects,
