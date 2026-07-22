@@ -55,6 +55,9 @@ function processRequest(params) {
     case 'addUser':
       return Database.addUser(params.payload);
       
+    case 'deleteUser':
+      return Database.deleteUser(params.username);
+      
     case 'getSubjects':
       return Database.getSubjects();
       

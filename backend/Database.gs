@@ -263,10 +263,29 @@ const Database = (function() {
     }
   }
 
+  function deleteUser(username) {
+    try {
+      const sheet = getSheet('Users');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง Users' };
+      
+      const data = sheet.getDataRange().getValues();
+      for (let i = data.length - 1; i > 0; i--) {
+        if (String(data[i][0]).toLowerCase() === String(username).toLowerCase()) {
+          sheet.deleteRow(i + 1);
+          return { success: true, message: 'ลบผู้ใช้งานสำเร็จ' };
+        }
+      }
+      return { success: false, message: 'ไม่พบผู้ใช้งานนี้ในระบบ' };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
   return {
     initialize: initialize,
     loginStaff: loginStaff,
     addUser: addUser,
+    deleteUser: deleteUser,
     getUsersList: getUsersList,
     getSubjects: getSubjects,
     saveSubject: saveSubject,
