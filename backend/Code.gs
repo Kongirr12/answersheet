@@ -75,6 +75,18 @@ function processRequest(params) {
       
     case 'saveScanResult':
       return Database.saveScanResult(params.payload);
+      
+    case 'getUsersList':
+      return Database.getUsersList();
+      
+    case 'getSettings':
+      return Database.getSettings();
+      
+    case 'saveSettings':
+      return Database.saveSettings(params.payload);
+      
+    case 'getDashboardStats':
+      return Database.getDashboardStats();
 
     default:
       return { success: false, message: 'Unknown action: ' + action };

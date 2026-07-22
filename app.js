@@ -139,17 +139,15 @@ function renderSidebar() {
 }
 
 function renderContent() {
+  if (currentPath === '/') return renderDashboardPage();
   if (currentPath === '/subjects') return renderSubjectsPage();
   if (currentPath === '/scan') return renderScanPage();
   if (currentPath === '/users') return renderUsersPage();
   if (currentPath === '/settings') return renderSettingsPage();
-  
-  // Default to Dashboard
+}
+
+async function renderDashboardPage() {
   const contentContainer = document.getElementById('page-content');
-  contentContainer.innerHTML = `
-    <div class="card">
-      <h2 style="margin-bottom: 16px;">ภาพรวมระบบ (Dashboard)</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 30px;">ยินดีต้อนรับเข้าสู่ MHC-TEST ระบบตรวจกระดาษคำตอบอัตโนมัติ</p>
       
       <div style="display: flex; gap: 20px;">
         <div style="flex: 1; background: #EEF2FF; padding: 30px; border-radius: 8px; text-align: center; border: 1px solid #C7D2FE;">

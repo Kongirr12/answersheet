@@ -198,15 +198,84 @@ const Database = (function() {
     }
   }
 
+  function getUsersList() {
+    try {
+      const uSheet = getSheet('Users');
+      const sSheet = getSheet('Students');
+      
+      const teachers = uSheet ? getSheetDataAsObjects(uSheet).map(u => ({ username: u.Username, name: u.Name, role: u.Role, status: u.Status })) : [];
+      const students = sSheet ? getSheetDataAsObjects(sSheet).length : 0; // Just return count to save bandwidth
+      
+      return { success: true, data: { teachers, studentsCount: students } };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
+  function getSettings() {
+    try {
+      const sheet = getSheet('Settings');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง Settings' };
+      
+      const settings = getSheetDataAsObjects(sheet);
+      return { success: true, data: settings };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
+  function saveSettings(payload) {
+    try {
+      const sheet = getSheet('Settings');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง Settings' };
+      
+      // Clear old settings
+      sheet.getDataRange().clearContent();
+      sheet.appendRow(['Key', 'Value']);
+      
+      // payload is an object { "SchoolName": "...", "DriveFolderID": "..." }
+      for (const key in payload) {
+        sheet.appendRow([key, payload[key]]);
+      }
+      return { success: true, message: 'บันทึกการตั้งค่าสำเร็จ' };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
+  function getDashboardStats() {
+    try {
+      const subSheet = getSheet('Subjects');
+      const scanSheet = getSheet('ScanResults');
+      
+      const subjectsCount = subSheet ? (subSheet.getLastRow() - 1) : 0;
+      const scansCount = scanSheet ? (scanSheet.getLastRow() - 1) : 0;
+      
+      return { 
+        success: true, 
+        data: {
+          totalSubjects: Math.max(0, subjectsCount),
+          totalScans: Math.max(0, scansCount)
+        }
+      };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
   return {
     initialize: initialize,
     loginStaff: loginStaff,
     addUser: addUser,
+    getUsersList: getUsersList,
     getSubjects: getSubjects,
     saveSubject: saveSubject,
     loginStudent: loginStudent,
     saveScanResult: saveScanResult,
     getAnswerKeys: getAnswerKeys,
-    saveAnswerKeys: saveAnswerKeys
+    saveAnswerKeys: saveAnswerKeys,
+    getSettings: getSettings,
+    saveSettings: saveSettings,
+    getDashboardStats: getDashboardStats
   };
 })();
