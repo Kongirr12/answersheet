@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MHC-TEST - ระบบตรวจข้อสอบ</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Phosphor Icons (Modern Icons) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= LOGIN SCREEN ================= -->
+  <div id="login-screen" class="screen active">
+    <div class="login-card card">
+      <h2 class="text-primary text-center" style="font-size: 2rem; margin-bottom: 10px; font-weight: 700;">MHC-TEST</h2>
+      <p class="text-secondary text-center" style="margin-bottom: 30px;">ระบบตรวจข้อสอบออนไลน์</p>
+      
+      <div class="role-tabs">
+        <button id="tab-student" class="tab-btn active" onclick="switchLoginRole('student')">นักเรียน</button>
+        <button id="tab-staff" class="tab-btn" onclick="switchLoginRole('staff')">ครู / Admin</button>
+      </div>
+
+      <!-- Student Login Form -->
+      <form id="student-login-form" onsubmit="handleStudentLogin(event)">
+        <div style="margin-bottom: 25px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">รหัสนักเรียน 5 หลัก</label>
+          <div class="input-group">
+            <i class="ph ph-key"></i>
+            <input type="text" id="student-id-input" maxlength="5" placeholder="กรอกรหัส 5 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="ph ph-sign-in"></i> เข้าสู่ระบบ
+        </button>
+      </form>
+
+      <!-- Staff Login Form -->
+      <div id="staff-login-form" style="display: none;">
+        <p class="text-secondary text-center" style="margin-bottom: 25px; line-height: 1.6;">สำหรับผู้ดูแลระบบและคุณครู<br>กรุณาเข้าสู่ระบบด้วยบัญชี Google</p>
+        <button type="button" onclick="handleGoogleLogin()" class="btn btn-outline w-100">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="24">
+          เข้าสู่ระบบด้วย Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP SCREEN ================= -->
+  <div id="app-screen" class="screen">
+    <aside class="sidebar">
+      <div class="sidebar-header">MHC-TEST</div>
+      <ul class="nav-links" id="sidebar-nav">
+        <!-- Injected via app.js based on role -->
+      </ul>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" onclick="handleLogout(event)">
+          <i class="ph ph-sign-out"></i> ออกจากระบบ
+        </a>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="topbar">
+        <div class="user-profile">
+          <span id="user-name-display">Guest</span>
+          <div class="avatar" id="user-avatar-display">U</div>
+        </div>
+      </header>
+      
+      <div class="page-content" id="page-content">
+        <!-- Content injected here via app.js -->
+      </div>
+    </main>
+  </div>
+
+  <script src="subjects.js"></script>
+  <script src="print.js"></script>
+  <script src="omr.js"></script>
+  <script src="users.js"></script>
+  <script src="settings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

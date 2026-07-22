@@ -1,0 +1,130 @@
+// ====== PRINT OMR SHEET LOGIC ======
+
+function printOMRSheet(subjectId) {
+  const subject = mockSubjects.find(s => s.id === subjectId) || { code: 'XXXX', name: 'ไม่ระบุ', class: 'ไม่ระบุ', totalQuestions: 20 };
+  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+      <meta charset="UTF-8">
+      <title>กระดาษคำตอบ - ${subject.name}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+      <style>
+        body { font-family: 'Kanit', sans-serif; margin: 0; padding: 0; background: #fff; }
+        .page { width: 210mm; height: 297mm; position: relative; padding: 20mm; box-sizing: border-box; }
+        .marker { width: 30px; height: 30px; background: black; position: absolute; border-radius: 50%; }
+        .m-tl { top: 10mm; left: 10mm; }
+        .m-tr { top: 10mm; right: 10mm; }
+        .m-bl { bottom: 10mm; left: 10mm; }
+        .m-br { bottom: 10mm; right: 10mm; }
+        
+        .header { text-align: center; margin-bottom: 20mm; }
+        .header h1 { margin: 0 0 10px 0; font-size: 24px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        
+        .omr-section { display: flex; justify-content: space-between; margin-top: 20px; }
+        
+        /* Student ID Grid */
+        .id-grid { margin-right: 40px; }
+        .id-grid table { border-collapse: collapse; }
+        .id-grid th { font-weight: normal; font-size: 12px; }
+        .bubble { width: 20px; height: 20px; border: 1.5px solid black; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 3px; font-size: 10px; }
+        
+        /* Answers Grid */
+        .answers-grid { flex: 1; display: flex; flex-wrap: wrap; gap: 20px; }
+        .q-col { width: 120px; }
+        .q-row { display: flex; align-items: center; margin-bottom: 5px; }
+        .q-num { width: 25px; text-align: right; margin-right: 10px; font-size: 14px; }
+        
+        @media print {
+          @page { margin: 0; size: A4; }
+          body { -webkit-print-color-adjust: exact; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="padding: 20px; background: #f3f4f6; text-align: center;">
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4F46E5; color: white; border: none; border-radius: 5px;">
+          พิมพ์กระดาษคำตอบ
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: white; color: black; border: 1px solid #ccc; border-radius: 5px; margin-left: 10px;">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+
+      <div class="page">
+        <!-- Markers -->
+        <div class="marker m-tl"></div>
+        <div class="marker m-tr"></div>
+        <div class="marker m-bl"></div>
+        <div class="marker m-br"></div>
+
+        <div class="header">
+          <h1>กระดาษคำตอบ (OMR)</h1>
+          <div class="info-row">
+            <span><strong>วิชา:</strong> ${subject.name} (${subject.code})</span>
+            <span><strong>ชั้นเรียน:</strong> ${subject.class}</span>
+            <span><strong>รหัสข้อสอบ:</strong> ${subject.id}</span>
+          </div>
+          <div class="info-row" style="margin-top: 15px;">
+            <span><strong>ชื่อ-สกุล:</strong> _________________________________________</span>
+            <span><strong>เลขที่:</strong> _______</span>
+          </div>
+        </div>
+
+        <div class="omr-section">
+          <!-- ID Marking -->
+          <div class="id-grid">
+            <h3 style="font-size: 14px; margin-bottom: 5px;">รหัสนักเรียน 5 หลัก</h3>
+            <table>
+              <tr>
+                ${[1,2,3,4,5].map(() => `<td style="border:1px solid #ccc; width: 25px; height: 30px;"></td>`).join('')}
+              </tr>
+              ${[0,1,2,3,4,5,6,7,8,9].map(num => `
+                <tr>
+                  ${[1,2,3,4,5].map(() => `<td><div class="bubble">${num}</div></td>`).join('')}
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+
+          <!-- Question Marking -->
+          <div class="answers-grid">
+            ${generateAnswerColumns(subject.totalQuestions)}
+          </div>
+        </div>
+        
+        <div style="margin-top: 30px; border: 1px dashed #ccc; padding: 20px; height: 200px;">
+          <h3 style="font-size: 14px; color: #666; margin: 0;">พื้นที่สำหรับข้อเขียน (ไม่กระทบการอ่าน OMR)</h3>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+}
+
+function generateAnswerColumns(total) {
+  let html = '';
+  const choices = ['A', 'B', 'C', 'D'];
+  // Group into columns of 10
+  for (let i = 0; i < total; i += 10) {
+    html += '<div class="q-col">';
+    for (let j = 1; j <= 10 && i + j <= total; j++) {
+      let qNum = i + j;
+      html += `
+        <div class="q-row">
+          <div class="q-num">${qNum}.</div>
+          ${choices.map(c => `<div class="bubble">${c}</div>`).join('')}
+        </div>
+      `;
+    }
+    html += '</div>';
+  }
+  return html;
+}
