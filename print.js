@@ -144,7 +144,7 @@ function printOMRSheet(subjectId, format = 'circle') {
 
 function generateAnswerColumns(total) {
   let html = '';
-  const choices = ['A', 'B', 'C', 'D'];
+  const choices = ['ก', 'ข', 'ค', 'ง'];
   // Group into columns of 10
   for (let i = 0; i < total; i += 10) {
     html += '<div class="q-col">';

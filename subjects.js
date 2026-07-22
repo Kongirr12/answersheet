@@ -317,10 +317,10 @@ async function manageKeys(id) {
         <div style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">ข้อ ${i}</div>
         <select id="key-input-${i}" class="form-control" style="width: 100%; padding: 5px; text-align: center;">
           <option value="">-</option>
-          <option value="A" ${ans === 'A' ? 'selected' : ''}>A</option>
-          <option value="B" ${ans === 'B' ? 'selected' : ''}>B</option>
-          <option value="C" ${ans === 'C' ? 'selected' : ''}>C</option>
-          <option value="D" ${ans === 'D' ? 'selected' : ''}>D</option>
+          <option value="ก" ${ans === 'ก' ? 'selected' : ''}>ก</option>
+          <option value="ข" ${ans === 'ข' ? 'selected' : ''}>ข</option>
+          <option value="ค" ${ans === 'ค' ? 'selected' : ''}>ค</option>
+          <option value="ง" ${ans === 'ง' ? 'selected' : ''}>ง</option>
         </select>
       </div>
     `;

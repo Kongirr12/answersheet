@@ -214,10 +214,10 @@ function gradeOMR() {
   
   for (let i = 1; i <= totalQ; i++) {
     const keyObj = currentAnswerKeys.find(k => parseInt(k.QuestionNo) === i);
-    const correctAns = keyObj ? keyObj.CorrectAnswer : 'A';
+    const correctAns = keyObj ? keyObj.CorrectAnswer : 'ก';
     
     // Simulate AI reading with 90% accuracy for demo purposes, or picking random if blurry
-    const choices = ['A','B','C','D'];
+    const choices = ['ก','ข','ค','ง'];
     let readAns = correctAns; 
     if (Math.random() > 0.85) {
       readAns = choices[Math.floor(Math.random() * choices.length)]; // AI mistake or student marked wrong
