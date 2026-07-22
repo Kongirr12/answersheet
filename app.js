@@ -2,6 +2,22 @@
 let currentUser = null; // { role: 'student' | 'teacher' | 'admin', name: string, id?: string }
 let currentPath = '/';
 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxStgawnWOcS78xCYyvolY-XljwWLCo_fSe_0xoTWwYtOElzGDBw6n7qp0mLlglqQM/exec';
+
+async function apiCall(params) {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(params)
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    return { success: false, message: 'การเชื่อมต่อขัดข้อง หรือ URL ไม่ถูกต้อง' };
+  }
+}
+
 // ====== LOGIN LOGIC ======
 function switchLoginRole(role) {
   document.getElementById('tab-student').classList.remove('active');
@@ -18,35 +34,46 @@ function switchLoginRole(role) {
   }
 }
 
-function handleStudentLogin(e) {
+async function handleStudentLogin(e) {
   e.preventDefault();
-  const studentId = document.getElementById('student-id-input').value;
+  const studentId = document.getElementById('student-id-input').value.trim();
   if (studentId.length !== 5) {
     Swal.fire('ข้อผิดพลาด', 'รหัสนักเรียนต้องมี 5 หลักเท่านั้น', 'error');
     return;
   }
   
-  // TODO: Call Google Apps Script API here
-  loginSuccess({ role: 'student', id: studentId, name: 'นักเรียน ' + studentId });
+  Swal.fire({ title: 'กำลังตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  
+  const res = await apiCall({ action: 'loginStudent', studentId: studentId });
+  if (res && res.success) {
+    Swal.close();
+    loginSuccess(res.data);
+  } else {
+    Swal.fire('ข้อผิดพลาด', res ? res.message : 'ไม่สามารถเข้าสู่ระบบได้', 'error');
+  }
 }
 
-function handleStaffLogin(e) {
+async function handleStaffLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('staff-username-input').value.trim().toLowerCase();
+  const username = document.getElementById('staff-username-input').value.trim();
   const password = document.getElementById('staff-password-input').value.trim();
 
-  if (username === 'admin' && password === '1234') {
-    // Admin login
-    loginSuccess({ role: 'admin', name: 'แอดมินระบบ' });
-  } else if (username.startsWith('mhc') && username.length >= 5) {
-    // Teacher login (Mockup allows any password for valid teacher IDs like mhc01)
-    if (password === '') {
-      Swal.fire('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่าน', 'error');
-      return;
-    }
-    loginSuccess({ role: 'teacher', name: 'คุณครู ' + username.toUpperCase() });
+  if (!username || !password) {
+    Swal.fire('ข้อผิดพลาด', 'กรุณากรอกข้อมูลให้ครบ', 'error');
+    return;
+  }
+
+  Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const res = await apiCall({ action: 'loginStaff', username: username, password: password });
+  
+  if (res && res.success) {
+    Swal.close();
+    // Normalizing role based on database response
+    const user = res.data;
+    loginSuccess({ role: user.Role.toLowerCase(), name: user.Name, username: user.Username });
   } else {
-    Swal.fire('ข้อผิดพลาด', 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+    Swal.fire('ข้อผิดพลาด', res ? res.message : 'เชื่อมต่อฐานข้อมูลล้มเหลว', 'error');
   }
 }
 
