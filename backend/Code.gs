@@ -61,6 +61,12 @@ function processRequest(params) {
     case 'saveSubject':
       return Database.saveSubject(params.payload);
       
+    case 'getAnswerKeys':
+      return Database.getAnswerKeys(params.subjectId);
+      
+    case 'saveAnswerKeys':
+      return Database.saveAnswerKeys(params.payload);
+      
     case 'loginStudent':
       return Database.loginStudent(params.studentId);
       

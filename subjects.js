@@ -83,6 +83,23 @@ async function renderSubjectsPage() {
         </form>
       </div>
     </div>
+
+    <!-- Answer Keys Modal -->
+    <div id="keys-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+      <div class="card" style="width: 600px; max-width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
+        <h3 style="margin-bottom: 10px;" id="keys-modal-title">จัดการเฉลย</h3>
+        <p style="color: #666; margin-bottom: 20px;" id="keys-modal-subtitle">รหัสวิชา: -</p>
+        
+        <div id="keys-container" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding-right: 10px; margin-bottom: 20px;">
+          <!-- Dynamically generated inputs -->
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <button type="button" class="btn btn-outline" onclick="closeKeysModal()">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" onclick="saveAnswerKeys()">บันทึกเฉลย</button>
+        </div>
+      </div>
+    </div>
   `;
   document.getElementById('page-content').innerHTML = content;
 }
@@ -118,11 +135,76 @@ async function saveSubject(e) {
   }
 }
 
-function manageKeys(id) {
-  Swal.fire({
-    title: 'จัดการเฉลย',
-    text: 'ฟังก์ชันทำเฉลย (กขคง / ABCD) สำหรับรหัสวิชา: ' + id,
-    icon: 'info'
+let currentKeysSubjectId = '';
+
+async function manageKeys(id) {
+  const subject = globalSubjects.find(s => s.SubjectID === id);
+  if (!subject) return;
+
+  currentKeysSubjectId = id;
+  document.getElementById('keys-modal-title').innerText = `จัดการเฉลย: ${subject.Name}`;
+  document.getElementById('keys-modal-subtitle').innerText = `รหัสวิชา: ${subject.Code} | จำนวน: ${subject.TotalQuestions} ข้อ`;
+  
+  Swal.fire({ title: 'กำลังดึงข้อมูลเฉลย...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const res = await apiCall({ action: 'getAnswerKeys', subjectId: id });
+  let existingKeys = [];
+  if (res && res.success) {
+    existingKeys = res.data;
+  }
+  Swal.close();
+
+  // Generate grid
+  let html = '';
+  for (let i = 1; i <= subject.TotalQuestions; i++) {
+    const existing = existingKeys.find(k => k.QuestionNo == i);
+    const ans = existing ? existing.CorrectAnswer : '';
+    
+    html += `
+      <div style="background: var(--background-color); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color);">
+        <div style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">ข้อ ${i}</div>
+        <select id="key-input-${i}" class="form-control" style="width: 100%; padding: 5px; text-align: center;">
+          <option value="">-</option>
+          <option value="A" ${ans === 'A' ? 'selected' : ''}>A</option>
+          <option value="B" ${ans === 'B' ? 'selected' : ''}>B</option>
+          <option value="C" ${ans === 'C' ? 'selected' : ''}>C</option>
+          <option value="D" ${ans === 'D' ? 'selected' : ''}>D</option>
+        </select>
+      </div>
+    `;
+  }
+  
+  document.getElementById('keys-container').innerHTML = html;
+  document.getElementById('keys-modal').style.display = 'flex';
+}
+
+function closeKeysModal() {
+  document.getElementById('keys-modal').style.display = 'none';
+}
+
+async function saveAnswerKeys() {
+  const subject = globalSubjects.find(s => s.SubjectID === currentKeysSubjectId);
+  if (!subject) return;
+
+  const keys = [];
+  for (let i = 1; i <= subject.TotalQuestions; i++) {
+    const val = document.getElementById(`key-input-${i}`).value;
+    if (val) {
+      keys.push({ q: i, a: val });
+    }
+  }
+
+  Swal.fire({ title: 'กำลังบันทึกเฉลย...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const res = await apiCall({ 
+    action: 'saveAnswerKeys', 
+    payload: { SubjectID: currentKeysSubjectId, Keys: keys } 
   });
-  // TODO: Build the answer key grid
+  
+  if (res && res.success) {
+    Swal.fire('สำเร็จ', 'บันทึกเฉลยเรียบร้อยแล้ว', 'success');
+    closeKeysModal();
+  } else {
+    Swal.fire('ข้อผิดพลาด', res ? res.message : 'บันทึกไม่สำเร็จ', 'error');
+  }
 }

@@ -10,7 +10,7 @@ function initializeDatabase() {
 const Database = (function() {
   
   // The Spreadsheet ID will be set by the user
-  const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+  const SPREADSHEET_ID = '1BPTU_-qzsTXYG00WGT_X7HJ6O24mjPFLmTfa_7qjq8U';
   
   function getSheet(sheetName) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -23,6 +23,7 @@ const Database = (function() {
       { name: 'Users', headers: ['Username', 'Password', 'Name', 'Role', 'Status'] },
       { name: 'Students', headers: ['StudentID', 'Name', 'Class'] },
       { name: 'Subjects', headers: ['SubjectID', 'Code', 'Name', 'Class', 'TotalQuestions'] },
+      { name: 'AnswerKeys', headers: ['SubjectID', 'QuestionNo', 'CorrectAnswer'] },
       { name: 'ScanResults', headers: ['ScanID', 'SubjectID', 'StudentID', 'Score', 'Confidence', 'DriveImageURL', 'Timestamp'] },
       { name: 'Settings', headers: ['Key', 'Value'] }
     ];
@@ -151,6 +152,52 @@ const Database = (function() {
     }
   }
 
+  function getAnswerKeys(subjectId) {
+    try {
+      const sheet = getSheet('AnswerKeys');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง AnswerKeys' };
+      
+      const allKeys = getSheetDataAsObjects(sheet);
+      const keys = allKeys.filter(k => String(k.SubjectID) === String(subjectId));
+      
+      // Sort by QuestionNo
+      keys.sort((a, b) => parseInt(a.QuestionNo) - parseInt(b.QuestionNo));
+      
+      return { success: true, data: keys };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
+  function saveAnswerKeys(payload) {
+    try {
+      const sheet = getSheet('AnswerKeys');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง AnswerKeys' };
+      
+      const subjectId = payload.SubjectID;
+      const keys = payload.Keys; // array of { q: 1, a: 'A' }
+      
+      // Delete existing keys for this subject from bottom to top
+      const data = sheet.getDataRange().getValues();
+      for (let i = data.length - 1; i > 0; i--) {
+        if (String(data[i][0]) === String(subjectId)) {
+          sheet.deleteRow(i + 1);
+        }
+      }
+      
+      // Add new keys
+      keys.forEach(k => {
+        if (k.a) { // Only save if an answer was provided
+          sheet.appendRow([subjectId, k.q, k.a]);
+        }
+      });
+      
+      return { success: true, message: 'บันทึกเฉลยสำเร็จ' };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
   return {
     initialize: initialize,
     loginStaff: loginStaff,
@@ -158,6 +205,8 @@ const Database = (function() {
     getSubjects: getSubjects,
     saveSubject: saveSubject,
     loginStudent: loginStudent,
-    saveScanResult: saveScanResult
+    saveScanResult: saveScanResult,
+    getAnswerKeys: getAnswerKeys,
+    saveAnswerKeys: saveAnswerKeys
   };
 })();
