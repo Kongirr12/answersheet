@@ -2,7 +2,7 @@
 let currentUser = null; // { role: 'student' | 'teacher' | 'admin', name: string, id?: string }
 let currentPath = '/';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbxStgawnWOcS78xCYyvolY-XljwWLCo_fSe_0xoTWwYtOElzGDBw6n7qp0mLlglqQM/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxs-nWyPdhFRMR6ZLoToSKKn9kl51TRz9Czll0CdTKU8teXr9XnUOUv3A_gK_FtA9Tz/exec';
 
 async function apiCall(params) {
   try {
