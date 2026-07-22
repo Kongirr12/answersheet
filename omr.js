@@ -126,18 +126,6 @@ function handleImageUpload(event) {
   };
   reader.readAsDataURL(file);
 }
-
-function processOMRImage(img) {
-  const canvas = document.getElementById('omr-canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Scale image to a standard processing size (max width 800)
-  const maxW = 800;
-  const scale = img.width > maxW ? maxW / img.width : 1;
-  canvas.width = img.width * scale;
-  canvas.height = img.height * scale;
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  
 // Helper for clustering values within a threshold
 function clusterByThreshold(values, threshold) {
   if (values.length === 0) return [];
@@ -160,9 +148,19 @@ let lastExtractedAnswers = [];
 let lastExtractedStudentId = "";
 let lastScanConfidence = 0;
 
-async function processImage(src) {
+function processOMRImage(img) {
   const canvas = document.getElementById('omr-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Scale image to a standard processing size (max width 800)
+  const maxW = 800;
+  const scale = img.width > maxW ? maxW / img.width : 1;
+  canvas.width = img.width * scale;
+  canvas.height = img.height * scale;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
   try {
+    let src = cv.imread(canvas);
     let gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     
