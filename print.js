@@ -10,8 +10,10 @@ function printOMRSheet(subjectId, format = 'circle') {
       <meta charset="UTF-8">
       <title>กระดาษคำตอบ - ${subject.Name}</title>
       <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
-      <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
       <style>
+        .subjective-content table { border-collapse: collapse; width: 100%; }
+        .subjective-content table, .subjective-content th, .subjective-content td { border: 1px solid black; padding: 5px; }
         body { font-family: 'Kanit', sans-serif; margin: 0; padding: 0; background: #fff; }
         .page { width: 210mm; height: 297mm; position: relative; padding: 20mm; box-sizing: border-box; }
         .marker { width: 30px; height: 30px; background: black; position: absolute; border-radius: 50%; }
@@ -120,7 +122,7 @@ function printOMRSheet(subjectId, format = 'circle') {
         ${subject.WrittenContent ? `
           <div style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
             <h3 style="font-size: 16px; margin-bottom: 15px;">ส่วนที่ 2: ข้อสอบอัตนัย (${subject.MaxWrittenScore || 0} คะแนน)</h3>
-            <div class="ql-editor" style="padding: 0; font-family: 'Kanit', sans-serif;">
+            <div class="subjective-content" style="padding: 0; font-family: 'Kanit', sans-serif; font-size: 15px;">
               ${subject.WrittenContent}
             </div>
           </div>

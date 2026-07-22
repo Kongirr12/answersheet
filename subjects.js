@@ -108,17 +108,15 @@ async function renderSubjectsPage() {
             </label>
             
             <style>
-              .ql-editor { font-family: 'Kanit', sans-serif !important; font-size: 15px; }
-              .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid #e5e7eb !important; background: #fafafa; }
-              .ql-container.ql-snow { border: none !important; }
+              .tox-tinymce { border-radius: 0 !important; border: none !important; }
             </style>
 
-            <div style="background: #e5e7eb; padding: 30px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: center; overflow-x: auto; overflow-y: auto; max-height: 500px;">
-              <div style="width: 170mm; flex-shrink: 0; min-height: 200mm; background: white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
-                <div style="padding: 15px 15px 0 15px; border-bottom: 2px dashed #ccc; font-size: 1.1rem; font-weight: 600; color: #444;">
+            <div style="background: #e5e7eb; padding: 30px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: center; overflow-x: auto; overflow-y: auto; max-height: 600px;">
+              <div style="width: 210mm; flex-shrink: 0; min-height: 297mm; background: white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding: 20mm; box-sizing: border-box;">
+                <div style="padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px dashed #ccc; font-size: 1.1rem; font-weight: 600; color: #444;">
                   ส่วนที่ 2: ข้อสอบอัตนัย
                 </div>
-                <div id="quill-editor" style="flex: 1; padding-bottom: 20px;"></div>
+                <div id="word-editor"></div>
               </div>
             </div>
           </div>
@@ -149,20 +147,26 @@ async function renderSubjectsPage() {
   `;
   document.getElementById('page-content').innerHTML = content;
   
-  // Initialize Quill Editor
-  if (window.Quill) {
-    window.quillEditor = new Quill('#quill-editor', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{ 'header': [1, 2, false] }],
-          ['bold', 'italic', 'underline'],
-          ['image'],
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          [{ 'align': [] }]
-        ]
-      },
-      placeholder: 'พิมพ์โจทย์ข้อเขียน แทรกรูปภาพ ฯลฯ'
+  // Initialize TinyMCE Editor
+  if (window.tinymce) {
+    tinymce.remove('#word-editor');
+    tinymce.init({
+      selector: '#word-editor',
+      height: 700,
+      menubar: true,
+      plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+      ],
+      toolbar: 'undo redo | fontfamily fontsize | ' +
+        'bold italic underline | forecolor backcolor | ' +
+        'alignleft aligncenter alignright alignjustify | ' +
+        'bullist numlist outdent indent | table image | removeformat',
+      content_style: "body { font-family: 'Kanit', sans-serif; font-size: 15px; }",
+      font_family_formats: 'Kanit=Kanit,sans-serif; Tahoma=tahoma,arial,helvetica,sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times;',
+      promotion: false,
+      branding: false
     });
   }
 }
@@ -176,7 +180,7 @@ function openSubjectModal() {
   document.getElementById('subj-type').value = 'กลางภาค';
   document.getElementById('subj-qty').value = 20;
   document.getElementById('subj-written-score').value = 0;
-  if (window.quillEditor) window.quillEditor.root.innerHTML = '';
+  if (window.tinymce && tinymce.get('word-editor')) tinymce.get('word-editor').setContent('');
   document.getElementById('subject-modal').style.display = 'flex';
 }
 
@@ -192,8 +196,8 @@ function editSubject(id) {
   document.getElementById('subj-type').value = subject.ExamType || 'กลางภาค';
   document.getElementById('subj-qty').value = subject.TotalQuestions || 20;
   document.getElementById('subj-written-score').value = subject.MaxWrittenScore || 0;
-  if (window.quillEditor) {
-    window.quillEditor.root.innerHTML = subject.WrittenContent || '';
+  if (window.tinymce && tinymce.get('word-editor')) {
+    tinymce.get('word-editor').setContent(subject.WrittenContent || '');
   }
   
   document.getElementById('subject-modal').style.display = 'flex';
@@ -229,9 +233,11 @@ function confirmPrint(subjectId) {
 async function saveSubject(e) {
   e.preventDefault();
   const writtenScore = parseInt(document.getElementById('subj-written-score').value) || 0;
-  // Use a reliable way to get Quill HTML; if it's empty, save as blank
-  const writtenHTML = window.quillEditor && window.quillEditor.root.innerHTML !== '<p><br></p>' 
-                      ? window.quillEditor.root.innerHTML : '';
+  // Get HTML from TinyMCE
+  let writtenHTML = '';
+  if (window.tinymce && tinymce.get('word-editor')) {
+    writtenHTML = tinymce.get('word-editor').getContent();
+  }
 
   const payload = {
     SubjectID: currentEditingSubjectId ? currentEditingSubjectId : ('SUB' + Date.now()),
