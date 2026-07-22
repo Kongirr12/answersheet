@@ -51,6 +51,9 @@ async function renderSubjectsPage() {
                 <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem;" onclick="confirmPrint('${sub.SubjectID}')">
                   <i class="ph ph-printer"></i> พิมพ์กระดาษ
                 </button>
+                <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.9rem; color: #dc2626; border-color: rgba(220, 38, 38, 0.3);" onclick="deleteSubject('${sub.SubjectID}')" title="ลบรายวิชา">
+                  <i class="ph ph-trash"></i>
+                </button>
               </td>
             </tr>
           `).join('')}
@@ -232,6 +235,30 @@ async function saveSubject(e) {
     renderSubjectsPage(); // Refresh
   } else {
     Swal.fire('ข้อผิดพลาด', res ? res.message : 'บันทึกไม่สำเร็จ', 'error');
+  }
+}
+
+async function deleteSubject(id) {
+  const result = await Swal.fire({
+    title: 'ยืนยันการลบวิชา?',
+    text: "คุณต้องการลบรายวิชานี้ใช่หรือไม่? (หากลบแล้วข้อมูลนี้จะหายไปจากระบบ)",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: '<i class="ph ph-trash"></i> ลบรายวิชา',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (result.isConfirmed) {
+    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const res = await apiCall({ action: 'deleteSubject', subjectId: id });
+    if (res && res.success) {
+      Swal.fire('สำเร็จ', 'ลบรายวิชาสำเร็จแล้ว', 'success');
+      renderSubjectsPage();
+    } else {
+      Swal.fire('ข้อผิดพลาด', res ? res.message : 'ลบรายวิชาล้มเหลว', 'error');
+    }
   }
 }
 

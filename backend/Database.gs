@@ -309,11 +309,30 @@ const Database = (function() {
     }
   }
 
+  function deleteSubject(subjectId) {
+    try {
+      const sheet = getSheet('Subjects');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง Subjects' };
+      
+      const data = sheet.getDataRange().getValues();
+      for (let i = data.length - 1; i > 0; i--) {
+        if (String(data[i][0]) === String(subjectId)) {
+          sheet.deleteRow(i + 1);
+          return { success: true, message: 'ลบรายวิชาสำเร็จ' };
+        }
+      }
+      return { success: false, message: 'ไม่พบรายวิชานี้ในระบบ' };
+    } catch (e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
   return {
     initialize: initialize,
     loginStaff: loginStaff,
     addUser: addUser,
     deleteUser: deleteUser,
+    deleteSubject: deleteSubject,
     getUsersList: getUsersList,
     getSubjects: getSubjects,
     saveSubject: saveSubject,

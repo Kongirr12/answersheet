@@ -64,6 +64,9 @@ function processRequest(params) {
     case 'saveSubject':
       return Database.saveSubject(params.payload);
       
+    case 'deleteSubject':
+      return Database.deleteSubject(params.subjectId);
+      
     case 'getAnswerKeys':
       return Database.getAnswerKeys(params.subjectId);
       
