@@ -47,14 +47,33 @@ function renderScanPage() {
       </div>
       
       <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;">
+        <button class="btn btn-outline" style="padding: 20px; flex-direction: column; width: 180px;" onclick="startCamera()">
+          <i class="ph ph-camera" style="font-size: 2rem; margin-bottom: 10px; color: var(--primary-color);"></i>
+          เปิดกล้องถ่ายรูป
+        </button>
         <button class="btn btn-outline" style="padding: 20px; flex-direction: column; width: 180px;" onclick="triggerUpload()">
           <i class="ph ph-upload-simple" style="font-size: 2rem; margin-bottom: 10px; color: var(--primary-color);"></i>
-          อัปโหลดรูปภาพ / ถ่ายภาพ
+          อัปโหลดรูปภาพ
           <span style="font-size: 0.8rem; color: #999; margin-top: 5px;">JPG, PNG</span>
         </button>
       </div>
       
-      <input type="file" id="omr-upload" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(event)">
+      <input type="file" id="omr-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+      
+      <!-- Camera View -->
+      <div id="camera-container" style="display: none; margin-bottom: 30px;">
+        <div style="max-width: 500px; margin: 0 auto; background: black; padding: 10px; border-radius: 12px; position: relative;">
+          <video id="omr-video" autoplay playsinline style="width: 100%; border-radius: 8px;"></video>
+          <div style="margin-top: 15px; display: flex; justify-content: center; gap: 15px;">
+            <button class="btn btn-primary" onclick="capturePhoto()" style="padding: 10px 20px; font-size: 1.1rem;">
+              <i class="ph ph-aperture"></i> ถ่ายรูป
+            </button>
+            <button class="btn btn-outline" onclick="stopCamera()" style="padding: 10px 20px; font-size: 1.1rem; color: white; border-color: #666; background: #333;">
+              <i class="ph ph-x"></i> ปิดกล้อง
+            </button>
+          </div>
+        </div>
+      </div>
       
       <div id="scanner-workspace" style="display: none; text-align: left;">
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
@@ -106,6 +125,66 @@ function triggerUpload() {
     return;
   }
   document.getElementById('omr-upload').click();
+}
+
+let videoStream = null;
+
+async function startCamera() {
+  if (!currentScanSubject || currentAnswerKeys.length === 0) {
+    Swal.fire('ข้อควรระวัง', 'กรุณาเลือกวิชาและรอให้ดึงเฉลยสำเร็จก่อนทำการสแกนครับ', 'warning');
+    return;
+  }
+  if (!cvReady && !window.cv) {
+    Swal.fire('ระบบกำลังเตรียมพร้อม', 'กำลังโหลดไลบรารี AI OpenCV.js กรุณารอสักครู่...', 'info');
+    return;
+  }
+  
+  document.getElementById('scanner-workspace').style.display = 'none';
+  const video = document.getElementById('omr-video');
+  const container = document.getElementById('camera-container');
+  
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: 'environment' } // Use back camera if on mobile
+    });
+    video.srcObject = videoStream;
+    container.style.display = 'block';
+  } catch (err) {
+    console.error("Camera error:", err);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเข้าถึงกล้องได้ กรุณาตรวจสอบสิทธิ์การใช้งานกล้องในเบราว์เซอร์', 'error');
+  }
+}
+
+function stopCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
+  document.getElementById('camera-container').style.display = 'none';
+}
+
+function capturePhoto() {
+  const video = document.getElementById('omr-video');
+  if (!videoStream) return;
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  stopCamera();
+  
+  document.getElementById('scanner-workspace').style.display = 'block';
+  document.getElementById('btn-save-result').disabled = true;
+  document.getElementById('res-details').innerHTML = '<div style="text-align:center; padding:20px;"><i class="ph ph-spinner ph-spin" style="font-size:2rem;"></i><br>กำลังใช้ AI ประมวลผลภาพ...</div>';
+  
+  const img = new Image();
+  img.onload = function() {
+    processOMRImage(img);
+  };
+  img.src = dataUrl;
 }
 
 function handleImageUpload(event) {
