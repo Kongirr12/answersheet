@@ -68,7 +68,7 @@ function renderScanPage() {
           <div style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 12px; border: var(--glass-border);">
             <h4 style="margin-bottom: 15px; color: var(--secondary-color);"><i class="ph ph-list-checks"></i> ผลการตรวจ</h4>
             
-            <p style="margin-bottom: 8px;"><strong>รหัสนักเรียน:</strong> <span id="res-student" style="color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">-</span></p>
+            <p style="margin-bottom: 8px;"><strong>เลขที่:</strong> <span id="res-student" style="color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">-</span></p>
             <p style="margin-bottom: 8px;"><strong>ความมั่นใจ:</strong> <span id="res-conf">-</span></p>
             <hr style="border: none; border-top: 1px dashed #eee; margin: 15px 0;">
             <div style="text-align: center; margin-bottom: 15px;">
@@ -231,8 +231,8 @@ function gradeOMR() {
     `;
   }
   
-  // Random student ID for demo
-  const studentId = "10" + Math.floor(100 + Math.random() * 900);
+  // Random Seat Number (01-50) for demo
+  const studentId = String(Math.floor(1 + Math.random() * 50)).padStart(2, '0');
   
   document.getElementById('res-student').innerText = studentId;
   document.getElementById('res-conf').innerHTML = '<span style="color: green;">92% (ดีมาก)</span>';

@@ -34,11 +34,18 @@
 
       <!-- Student Login Form -->
       <form id="student-login-form" onsubmit="handleStudentLogin(event)">
-        <div style="margin-bottom: 25px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500;">รหัสนักเรียน 5 หลัก</label>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">รหัสวิชาสอบ</label>
           <div class="input-group">
-            <i class="ph ph-key"></i>
-            <input type="text" id="student-id-input" maxlength="5" placeholder="กรอกรหัส 5 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <i class="ph ph-books"></i>
+            <input type="text" id="student-subj-input" placeholder="เช่น MTH101" style="text-transform: uppercase;">
+          </div>
+        </div>
+        <div style="margin-bottom: 25px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">เลขที่ (2 หลัก)</label>
+          <div class="input-group">
+            <i class="ph ph-hash"></i>
+            <input type="text" id="student-id-input" maxlength="2" placeholder="เช่น 05" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
           </div>
         </div>
         <button type="submit" class="btn btn-primary w-100">

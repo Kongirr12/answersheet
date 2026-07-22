@@ -77,12 +77,12 @@ function printOMRSheet(subjectId, format = 'circle') {
           <h1>กระดาษคำตอบ (OMR)</h1>
           <div class="info-row">
             <span><strong>วิชา:</strong> ${subject.Name} (${subject.Code})</span>
+            <span><strong>ประเภท:</strong> ${subject.ExamType || 'ทั่วไป'}</span>
             <span><strong>ชั้นเรียน:</strong> ${subject.Class}</span>
-            <span><strong>รหัสข้อสอบ:</strong> ${subject.SubjectID}</span>
           </div>
           <div class="info-row" style="margin-top: 15px;">
             <span><strong>ชื่อ-สกุล:</strong> _________________________________________</span>
-            <span><strong>เลขที่:</strong> _______</span>
+            <span><strong>รหัสข้อสอบ:</strong> ${subject.SubjectID}</span>
           </div>
           <div style="margin-top: 10px; font-size: 13px; color: #444; border: 1px solid #ccc; padding: 5px; border-radius: 4px; display: inline-block;">
             <strong>คำชี้แจง:</strong> ให้นักเรียน <u>ระบายทึบ</u> หรือ <u>กากบาท (X)</u> ลงใน${format === 'square' ? 'ช่องสี่เหลี่ยม' : 'วงกลม'}ให้ชัดเจน
@@ -92,14 +92,15 @@ function printOMRSheet(subjectId, format = 'circle') {
         <div class="omr-section">
           <!-- ID Marking -->
           <div class="id-grid">
-            <h3 style="font-size: 14px; margin-bottom: 5px;">รหัสนักเรียน 5 หลัก</h3>
+            <h3 style="font-size: 14px; margin-bottom: 5px;">เลขที่ (2 หลัก)</h3>
+            <div style="font-size: 11px; color: #666; margin-bottom: 5px;">(เช่น เลขที่ 5 ให้ฝน 05)</div>
             <table>
               <tr>
-                ${[1,2,3,4,5].map(() => `<td style="border:1px solid #ccc; width: 25px; height: 30px;"></td>`).join('')}
+                ${[1,2].map(() => `<td style="border:1px solid #ccc; width: 25px; height: 30px;"></td>`).join('')}
               </tr>
               ${[0,1,2,3,4,5,6,7,8,9].map(num => `
                 <tr>
-                  ${[1,2,3,4,5].map(() => `<td><div class="bubble">${num}</div></td>`).join('')}
+                  ${[1,2].map(() => `<td><div class="bubble">${num}</div></td>`).join('')}
                 </tr>
               `).join('')}
             </table>

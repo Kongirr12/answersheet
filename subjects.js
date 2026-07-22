@@ -23,9 +23,9 @@ async function renderSubjectsPage() {
       
       <table class="glass-table">
         <thead>
-          <tr>
             <th>รหัสวิชา</th>
             <th>ชื่อวิชา</th>
+            <th>ประเภทการสอบ</th>
             <th>ชั้นเรียน</th>
             <th>จำนวนข้อ</th>
             <th style="text-align: center;">จัดการ</th>
@@ -37,6 +37,7 @@ async function renderSubjectsPage() {
             <tr>
               <td>${sub.Code || sub.SubjectID}</td>
               <td>${sub.Name}</td>
+              <td><span style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 4px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">${sub.ExamType || 'ทั่วไป'}</span></td>
               <td>${sub.Class}</td>
               <td>${sub.TotalQuestions}</td>
               <td style="text-align: center;">
@@ -70,6 +71,14 @@ async function renderSubjectsPage() {
              <div style="flex: 1;">
                <label style="display: block; margin-bottom: 5px;">ชั้นเรียน</label>
                <input type="text" id="subj-class" placeholder="เช่น ม.4/1" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit;">
+             </div>
+             <div style="flex: 1;">
+               <label style="display: block; margin-bottom: 5px;">ประเภทการสอบ</label>
+               <select id="subj-type" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: Kanit; background: white;">
+                 <option value="กลางภาค">กลางภาค</option>
+                 <option value="ปลายภาค">ปลายภาค</option>
+                 <option value="เก็บคะแนน">สอบเก็บคะแนนทั่วไป</option>
+               </select>
              </div>
              <div style="flex: 1;">
                <label style="display: block; margin-bottom: 5px;">จำนวนข้อสอบ</label>
@@ -142,6 +151,7 @@ async function saveSubject(e) {
     Code: document.getElementById('subj-code').value,
     Name: document.getElementById('subj-name').value,
     Class: document.getElementById('subj-class').value,
+    ExamType: document.getElementById('subj-type').value,
     TotalQuestions: parseInt(document.getElementById('subj-qty').value)
   };
   

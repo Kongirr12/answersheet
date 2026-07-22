@@ -36,15 +36,18 @@ function switchLoginRole(role) {
 
 async function handleStudentLogin(e) {
   e.preventDefault();
-  const studentId = document.getElementById('student-id-input').value.trim();
-  if (studentId.length !== 5) {
-    Swal.fire('ข้อผิดพลาด', 'รหัสนักเรียนต้องมี 5 หลักเท่านั้น', 'error');
+  const subjCode = document.getElementById('student-subj-input').value.trim().toUpperCase();
+  const seatNo = document.getElementById('student-id-input').value.trim();
+  
+  if (!subjCode || seatNo.length !== 2) {
+    Swal.fire('ข้อผิดพลาด', 'กรุณากรอกรหัสวิชา และ เลขที่ให้ครบ 2 หลัก (เช่น 05)', 'error');
     return;
   }
   
   Swal.fire({ title: 'กำลังตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
-  const res = await apiCall({ action: 'loginStudent', studentId: studentId });
+  // Send Subject Code and Seat Number to backend
+  const res = await apiCall({ action: 'loginStudent', subjectCode: subjCode, seatNumber: seatNo });
   if (res && res.success) {
     Swal.close();
     loginSuccess(res.data);
