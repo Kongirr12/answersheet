@@ -148,17 +148,33 @@ function renderContent() {
 
 async function renderDashboardPage() {
   const contentContainer = document.getElementById('page-content');
-      
-      <div style="display: flex; gap: 20px;">
-        <div style="flex: 1; background: #EEF2FF; padding: 30px; border-radius: 8px; text-align: center; border: 1px solid #C7D2FE;">
-          <h3 style="color: var(--primary-color); font-size: 3rem; margin-bottom: 10px;">${currentUser.role === 'student' ? '5' : '12'}</h3>
-          <p style="color: var(--primary-hover); font-weight: 500;">วิชาทั้งหมด</p>
-        </div>
-        <div style="flex: 1; background: #D1FAE5; padding: 30px; border-radius: 8px; text-align: center; border: 1px solid #A7F3D0;">
-          <h3 style="color: #059669; font-size: 3rem; margin-bottom: 10px;">${currentUser.role === 'student' ? '85' : '350'}</h3>
-          <p style="color: #047857; font-weight: 500;">คะแนน/กระดาษที่ตรวจแล้ว</p>
+  contentContainer.innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดภาพรวมระบบ...</div>';
+  
+  const res = await apiCall({ action: 'getDashboardStats' });
+  let stats = { totalSubjects: 0, totalScans: 0 };
+  if (res && res.success) {
+    stats = res.data;
+  }
+
+  const content = `
+      <div class="card">
+        <h2 style="margin-bottom: 16px;">ภาพรวมระบบ (Dashboard)</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+          <div style="background: var(--primary-color); color: white; padding: 20px; border-radius: 8px;">
+            <div style="font-size: 0.9rem; opacity: 0.9;">จำนวนวิชาทั้งหมด</div>
+            <div style="font-size: 2rem; font-weight: 600;">\${stats.totalSubjects}</div>
+          </div>
+          <div style="background: var(--secondary-color); color: white; padding: 20px; border-radius: 8px;">
+            <div style="font-size: 0.9rem; opacity: 0.9;">กระดาษคำตอบที่สแกนแล้ว</div>
+            <div style="font-size: 2rem; font-weight: 600;">\${stats.totalScans}</div>
+          </div>
+          <div style="background: #10B981; color: white; padding: 20px; border-radius: 8px;">
+            <div style="font-size: 0.9rem; opacity: 0.9;">สถานะระบบ</div>
+            <div style="font-size: 1.5rem; font-weight: 600; margin-top: 5px;">ออนไลน์</div>
+          </div>
         </div>
       </div>
-    </div>
   `;
+  contentContainer.innerHTML = content;
 }
