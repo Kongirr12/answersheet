@@ -82,6 +82,9 @@ function processRequest(params) {
     case 'saveScanResult':
       return Database.saveScanResult(params.payload);
       
+    case 'saveBulkScanResults':
+      return Database.saveBulkScanResults(params.payload);
+      
     case 'getUsersList':
       return Database.getUsersList();
       

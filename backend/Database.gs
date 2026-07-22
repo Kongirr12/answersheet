@@ -171,10 +171,26 @@ const Database = (function() {
     try {
       const sheet = getSheet('ScanResults');
       if (!sheet) return { success: false, message: 'ไม่พบตาราง ScanResults' };
-      // payload = { ScanID, SubjectID, StudentID, Score, Confidence, DriveImageURL }
       const timestamp = new Date();
       sheet.appendRow([payload.ScanID, payload.SubjectID, payload.StudentID, payload.Score, payload.Confidence, payload.DriveImageURL, timestamp]);
       return { success: true, message: 'บันทึกผลสแกนสำเร็จ' };
+    } catch(e) {
+      return { success: false, message: e.toString() };
+    }
+  }
+
+  function saveBulkScanResults(payload) {
+    try {
+      const sheet = getSheet('ScanResults');
+      if (!sheet) return { success: false, message: 'ไม่พบตาราง ScanResults' };
+      const timestamp = new Date();
+      
+      const rows = payload.map(p => [p.ScanID, p.SubjectID, p.StudentID, p.Score, p.Confidence, p.DriveImageURL || '', timestamp]);
+      
+      if (rows.length > 0) {
+        sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+      }
+      return { success: true, message: 'บันทึกผลสแกนแบบกลุ่มสำเร็จ ' + rows.length + ' รายการ' };
     } catch(e) {
       return { success: false, message: e.toString() };
     }
@@ -338,6 +354,7 @@ const Database = (function() {
     saveSubject: saveSubject,
     loginStudent: loginStudent,
     saveScanResult: saveScanResult,
+    saveBulkScanResults: saveBulkScanResults,
     getAnswerKeys: getAnswerKeys,
     saveAnswerKeys: saveAnswerKeys,
     getSettings: getSettings,

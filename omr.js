@@ -58,7 +58,7 @@ function renderScanPage() {
         </button>
       </div>
       
-      <input type="file" id="omr-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+      <input type="file" id="omr-upload" accept="image/*" multiple style="display: none;" onchange="handleImageUpload(event)">
       
       <!-- Camera View -->
       <div id="camera-container" style="display: none; margin-bottom: 30px;">
@@ -108,6 +108,31 @@ function renderScanPage() {
               <i class="ph ph-floppy-disk"></i> บันทึกเข้าระบบ
             </button>
           </div>
+        </div>
+      </div>
+      
+      <!-- Bulk Results View -->
+      <div id="bulk-results-container" style="display: none; margin-top: 20px; background: rgba(255,255,255,0.9); padding: 20px; border-radius: 12px; border: var(--glass-border);">
+        <h3 style="margin-bottom: 15px; color: var(--primary-color);"><i class="ph ph-users"></i> สรุปผลการสแกนแบบกลุ่ม (<span id="bulk-count">0</span> ใบ)</h3>
+        <div style="overflow-x: auto;">
+          <table class="table" id="bulk-results-table">
+            <thead>
+              <tr>
+                <th>เลขที่</th>
+                <th>คะแนนดิบ</th>
+                <th id="bulk-written-col" style="display:none;">คะแนนข้อเขียน</th>
+                <th>คะแนนรวม</th>
+                <th>ความมั่นใจ</th>
+                <th>ลบ</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+          <button id="btn-save-bulk" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.1rem;" onclick="saveBulkResult()">
+            <i class="ph ph-floppy-disk"></i> บันทึกเข้าระบบทั้งหมด
+          </button>
         </div>
       </div>
     </div>
@@ -187,13 +212,44 @@ function capturePhoto() {
   img.src = dataUrl;
 }
 
+let scanQueue = [];
+let bulkResults = [];
+let isBulkMode = false;
+let currentProcessingFileIndex = 0;
+
 function handleImageUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
   
+  scanQueue = Array.from(files);
+  bulkResults = [];
+  isBulkMode = scanQueue.length > 1;
+  currentProcessingFileIndex = 0;
+  
+  document.getElementById('bulk-results-container').style.display = 'none';
   document.getElementById('scanner-workspace').style.display = 'block';
   document.getElementById('btn-save-result').disabled = true;
-  document.getElementById('res-details').innerHTML = '<div style="text-align:center; padding:20px;"><i class="ph ph-spinner ph-spin" style="font-size:2rem;"></i><br>กำลังใช้ AI ประมวลผลภาพ...</div>';
+  
+  processNextInQueue();
+}
+
+function processNextInQueue() {
+  if (scanQueue.length === 0) {
+    if (isBulkMode) {
+      document.getElementById('scanner-workspace').style.display = 'none';
+      renderBulkTable();
+    }
+    return;
+  }
+  
+  const file = scanQueue.shift();
+  currentProcessingFileIndex++;
+  
+  let msg = 'กำลังใช้ AI ประมวลผลภาพ...';
+  if (isBulkMode) {
+    msg = `กำลังสแกนใบที่ ${currentProcessingFileIndex} ...`;
+  }
+  document.getElementById('res-details').innerHTML = `<div style="text-align:center; padding:20px;"><i class="ph ph-spinner ph-spin" style="font-size:2rem;"></i><br>${msg}</div>`;
   
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -456,6 +512,11 @@ function gradeOMR() {
     WrittenScore: 0,
     TotalScore: score
   };
+  
+  if (isBulkMode) {
+    bulkResults.push(Object.assign({}, lastScanResult));
+    setTimeout(() => processNextInQueue(), 200);
+  }
 }
 
 window.updateTotalScore = function() {
@@ -512,6 +573,99 @@ async function saveResult() {
   if (res && res.success) {
     Swal.fire('สำเร็จ', 'บันทึกคะแนนและรูปภาพเข้าฐานข้อมูลเรียบร้อยแล้ว', 'success');
     document.getElementById('btn-save-result').disabled = true;
+  } else {
+    Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + (res ? res.message : ''), 'error');
+  }
+}
+
+function renderBulkTable() {
+  document.getElementById('bulk-results-container').style.display = 'block';
+  document.getElementById('bulk-count').innerText = bulkResults.length;
+  
+  const maxWritten = currentScanSubject ? parseInt(currentScanSubject.MaxWrittenScore) || 0 : 0;
+  if (maxWritten > 0) {
+    document.getElementById('bulk-written-col').style.display = 'table-cell';
+  } else {
+    document.getElementById('bulk-written-col').style.display = 'none';
+  }
+  
+  const tbody = document.querySelector('#bulk-results-table tbody');
+  tbody.innerHTML = '';
+  
+  bulkResults.forEach((res, index) => {
+    let confColor = parseInt(res.Confidence) > 90 ? 'green' : (parseInt(res.Confidence) > 70 ? 'orange' : 'red');
+    
+    let writtenInput = '';
+    if (maxWritten > 0) {
+      writtenInput = `<input type="number" min="0" max="${maxWritten}" value="0" class="form-control" style="width: 70px; display: inline-block;" onchange="updateBulkScore(${index}, this.value)">`;
+    }
+    
+    let tr = document.createElement('tr');
+    tr.id = `bulk-row-${index}`;
+    tr.innerHTML = `
+      <td>
+        <input type="text" class="form-control" style="width: 80px;" value="${res.StudentID}" onchange="updateBulkSeat(${index}, this.value)">
+      </td>
+      <td>${res.Score}</td>
+      <td style="${maxWritten > 0 ? '' : 'display:none;'}">${writtenInput}</td>
+      <td id="bulk-total-${index}" style="font-weight: bold; color: #059669;">${res.Score}</td>
+      <td style="color: ${confColor};">${res.Confidence}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" style="color: red; border-color: red;" onclick="removeBulkItem(${index})"><i class="ph ph-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.updateBulkScore = function(index, value) {
+  let val = parseInt(value) || 0;
+  const maxWritten = parseInt(currentScanSubject.MaxWrittenScore) || 0;
+  if (val > maxWritten) val = maxWritten;
+  if (val < 0) val = 0;
+  
+  bulkResults[index].WrittenScore = val;
+  bulkResults[index].TotalScore = bulkResults[index].Score + val;
+  document.getElementById(`bulk-total-${index}`).innerText = bulkResults[index].TotalScore;
+};
+
+window.updateBulkSeat = function(index, value) {
+  bulkResults[index].StudentID = value;
+};
+
+window.removeBulkItem = function(index) {
+  document.getElementById(`bulk-row-${index}`).style.display = 'none';
+  bulkResults[index].deleted = true;
+};
+
+async function saveBulkResult() {
+  const activeResults = bulkResults.filter(r => !r.deleted);
+  if (activeResults.length === 0) return;
+  
+  let errorCount = activeResults.filter(r => r.StudentID.includes('X') || r.StudentID.trim() === '').length;
+  if (errorCount > 0) {
+    Swal.fire('ข้อมูลไม่สมบูรณ์', 'มีกระดาษที่ AI อ่านเลขที่ไม่ออก (หรือไม่ได้กรอก) กรุณาแก้ไขเลขที่ก่อนบันทึกครับ', 'warning');
+    return;
+  }
+  
+  Swal.fire({ title: 'กำลังบันทึก...', html: 'กรุณารอสักครู่ กำลังส่งข้อมูลเข้าระบบ', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  
+  const payload = activeResults.map((res, i) => ({
+    ScanID: 'SCN-B' + Date.now() + '-' + i,
+    SubjectID: currentScanSubject.SubjectID,
+    StudentID: res.StudentID,
+    Score: res.TotalScore,
+    Confidence: res.Confidence,
+    DriveImageURL: '' // skip images for bulk to save upload time
+  }));
+  
+  const res = await apiCall({ action: 'saveBulkScanResults', payload: payload });
+  
+  if (res && res.success) {
+    Swal.fire('สำเร็จ', res.message, 'success').then(() => {
+      document.getElementById('bulk-results-container').style.display = 'none';
+      bulkResults = [];
+    });
   } else {
     Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + (res ? res.message : ''), 'error');
   }
