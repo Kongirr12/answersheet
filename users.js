@@ -28,21 +28,21 @@ async function renderUsersPage() {
               </tr>
             </thead>
             <tbody>
-              \${teachers.length === 0 ? '<tr><td colspan="3" style="text-align:center; padding: 10px;">ไม่มีข้อมูล</td></tr>' : 
-                teachers.map(t => \`
+              ${teachers.length === 0 ? '<tr><td colspan="3" style="text-align:center; padding: 10px;">ไม่มีข้อมูล</td></tr>' : 
+                teachers.map(t => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
                   <td style="padding: 10px;">
-                    <div>\${t.name}</div>
-                    <div style="font-size: 0.85rem; color: var(--text-secondary);">\${t.username}</div>
+                    <div>${t.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${t.username}</div>
                   </td>
-                  <td style="padding: 10px;">\${t.role}</td>
+                  <td style="padding: 10px;">${t.role}</td>
                   <td style="padding: 10px;">
-                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: \${t.status === 'Active' ? '#D1FAE5' : '#FEF3C7'}; color: \${t.status === 'Active' ? '#059669' : '#D97706'};">
-                      \${t.status}
+                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: ${t.status === 'Active' ? '#D1FAE5' : '#FEF3C7'}; color: ${t.status === 'Active' ? '#059669' : '#D97706'};">
+                      ${t.status}
                     </span>
                   </td>
                 </tr>
-              \`).join('')}
+              `).join('')}
             </tbody>
           </table>
           <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 15px;">หากต้องการเพิ่ม แก้ไข หรือลบบัญชี กรุณาจัดการใน Google Sheets (ชีต Users)</p>
@@ -50,7 +50,7 @@ async function renderUsersPage() {
         
         <div style="flex: 1; min-width: 300px;">
           <h3 style="margin-bottom: 15px;">ฐานข้อมูลนักเรียน</h3>
-          <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">\${studentsCount} คน</div>
+          <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">${studentsCount} คน</div>
           <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.95rem;">
             รายชื่อและรหัสของนักเรียนจะถูกซิงค์มาจาก Google Sheets อัตโนมัติ (ชีต Students) 
           </p>

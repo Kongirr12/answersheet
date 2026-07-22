@@ -163,11 +163,11 @@ async function renderDashboardPage() {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
           <div style="background: var(--primary-color); color: white; padding: 20px; border-radius: 8px;">
             <div style="font-size: 0.9rem; opacity: 0.9;">จำนวนวิชาทั้งหมด</div>
-            <div style="font-size: 2rem; font-weight: 600;">\${stats.totalSubjects}</div>
+            <div style="font-size: 2rem; font-weight: 600;">${stats.totalSubjects}</div>
           </div>
           <div style="background: var(--secondary-color); color: white; padding: 20px; border-radius: 8px;">
             <div style="font-size: 0.9rem; opacity: 0.9;">กระดาษคำตอบที่สแกนแล้ว</div>
-            <div style="font-size: 2rem; font-weight: 600;">\${stats.totalScans}</div>
+            <div style="font-size: 2rem; font-weight: 600;">${stats.totalScans}</div>
           </div>
           <div style="background: #10B981; color: white; padding: 20px; border-radius: 8px;">
             <div style="font-size: 0.9rem; opacity: 0.9;">สถานะระบบ</div>
