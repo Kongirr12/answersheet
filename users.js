@@ -1,9 +1,11 @@
 // ====== USERS MANAGEMENT ======
 
 async function renderUsersPage() {
-  document.getElementById('page-content').innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดข้อมูลผู้ใช้งาน...</div>';
+  document.getElementById('page-content').innerHTML = '';
+  Swal.fire({ title: 'กำลังโหลดข้อมูลผู้ใช้งาน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const res = await apiCall({ action: 'getUsersList' });
+  Swal.close();
   let teachers = [];
   let studentsCount = 0;
   

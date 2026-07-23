@@ -74,7 +74,16 @@ function processRequest(params) {
       return Database.saveAnswerKeys(params.payload);
       
     case 'loginStudent':
-      return Database.loginStudent(params.studentId);
+      return Database.loginStudent(params.subjectCode, params.seatNumber);
+      
+    case 'getRosters':
+      return Database.getRosters(params.class);
+      
+    case 'saveRosters':
+      return Database.saveRosters(params.payload);
+      
+    case 'getScanResults':
+      return Database.getScanResults(params.subjectId);
       
     case 'uploadImage':
       return DriveManager.uploadImage(params.base64Data, params.filename);

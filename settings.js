@@ -1,8 +1,10 @@
 // ====== SETTINGS ======
 async function renderSettingsPage() {
-  document.getElementById('page-content').innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดการตั้งค่า...</div>';
+  document.getElementById('page-content').innerHTML = '';
+  Swal.fire({ title: 'กำลังโหลดการตั้งค่า...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const res = await apiCall({ action: 'getSettings' });
+  Swal.close();
   let settingsObj = { 'SchoolName': '', 'DriveFolderID': '' };
   
   if (res && res.success) {

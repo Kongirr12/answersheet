@@ -3,9 +3,11 @@ let globalSubjects = [];
 let currentEditingSubjectId = null;
 
 async function renderSubjectsPage() {
-  document.getElementById('page-content').innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดข้อมูลรายวิชา...</div>';
+  document.getElementById('page-content').innerHTML = '';
+  Swal.fire({ title: 'กำลังโหลดข้อมูลรายวิชา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const res = await apiCall({ action: 'getSubjects' });
+  Swal.close();
   if (res && res.success) {
     globalSubjects = res.data;
   } else {

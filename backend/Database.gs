@@ -25,6 +25,7 @@ const Database = (function() {
       { name: 'Subjects', headers: ['SubjectID', 'Code', 'Name', 'Class', 'TotalQuestions', 'ExamType', 'MaxWrittenScore', 'WrittenContent'] },
       { name: 'AnswerKeys', headers: ['SubjectID', 'QuestionNo', 'CorrectAnswer'] },
       { name: 'ScanResults', headers: ['ScanID', 'SubjectID', 'StudentID', 'Score', 'Confidence', 'DriveImageURL', 'Timestamp'] },
+      { name: 'Rosters', headers: ['Class', 'SeatNo', 'StudentId', 'Name'] },
       { name: 'Settings', headers: ['Key', 'Value'] }
     ];
 
@@ -147,21 +148,45 @@ const Database = (function() {
     }
   }
 
-  function loginStudent(studentId) {
+  function loginStudent(subjectCode, seatNumber) {
     try {
-      if (!studentId || studentId.length !== 5) {
-        return { success: false, message: 'รหัสนักเรียนต้องมี 5 หลัก' };
+      if (!subjectCode || !seatNumber) {
+        return { success: false, message: 'กรุณากรอกรหัสวิชาและเลขที่ให้ครบ' };
       }
-      const sheet = getSheet('Students');
-      if (!sheet) return { success: false, message: 'ไม่พบตาราง Students' };
-
-      const students = getSheetDataAsObjects(sheet);
-      const student = students.find(s => String(s.StudentID) === String(studentId));
       
-      if (student) {
-        return { success: true, data: student };
+      const subjSheet = getSheet('Subjects');
+      if (!subjSheet) return { success: false, message: 'ไม่พบตาราง Subjects' };
+      
+      const subjects = getSheetDataAsObjects(subjSheet);
+      const subject = subjects.find(s => String(s.Code).toUpperCase() === String(subjectCode).toUpperCase());
+      
+      if (!subject) {
+        return { success: false, message: 'ไม่พบรหัสวิชานี้ในระบบ' };
       }
-      return { success: false, message: 'ไม่พบรหัสนักเรียนนี้ในระบบ' };
+      
+      let studentName = 'นักเรียน เลขที่ ' + seatNumber;
+      
+      // Try to find the student's name in Rosters if available
+      const rosterSheet = getSheet('Rosters');
+      if (rosterSheet) {
+        const rosters = getSheetDataAsObjects(rosterSheet);
+        const roster = rosters.find(r => String(r.Class) === String(subject.Class) && String(r.SeatNo) === String(seatNumber));
+        if (roster && roster.Name) {
+          studentName = roster.Name;
+        }
+      }
+      
+      return { 
+        success: true, 
+        data: { 
+          role: 'student', 
+          name: studentName, 
+          seatNumber: seatNumber, 
+          subjectId: subject.SubjectID,
+          className: subject.Class
+        } 
+      };
+      
     } catch (e) {
       return { success: false, message: e.toString() };
     }
@@ -355,6 +380,57 @@ const Database = (function() {
     loginStudent: loginStudent,
     saveScanResult: saveScanResult,
     saveBulkScanResults: saveBulkScanResults,
+    getScanResults: function(subjectId) {
+      try {
+        const sheet = getSheet('ScanResults');
+        if (!sheet) return { success: false, message: 'ไม่พบตาราง ScanResults' };
+        
+        const allResults = getSheetDataAsObjects(sheet);
+        const results = allResults.filter(r => String(r.SubjectID) === String(subjectId));
+        return { success: true, data: results };
+      } catch (e) {
+        return { success: false, message: e.toString() };
+      }
+    },
+    getRosters: function(className) {
+      try {
+        const sheet = getSheet('Rosters');
+        if (!sheet) return { success: false, message: 'ไม่พบตาราง Rosters' };
+        
+        const allRosters = getSheetDataAsObjects(sheet);
+        const rosters = allRosters.filter(r => String(r.Class) === String(className));
+        return { success: true, data: rosters };
+      } catch (e) {
+        return { success: false, message: e.toString() };
+      }
+    },
+    saveRosters: function(payload) {
+      try {
+        const sheet = getSheet('Rosters');
+        if (!sheet) return { success: false, message: 'ไม่พบตาราง Rosters' };
+        
+        const className = payload.className;
+        const students = payload.students;
+        
+        // Delete existing roster for this class
+        const data = sheet.getDataRange().getValues();
+        for (let i = data.length - 1; i > 0; i--) {
+          if (String(data[i][0]) === String(className)) {
+            sheet.deleteRow(i + 1);
+          }
+        }
+        
+        // Add new students
+        if (students && students.length > 0) {
+          const rows = students.map(s => [className, s.SeatNo, s.StudentId || '', s.Name]);
+          sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+        }
+        
+        return { success: true, message: 'บันทึกรายชื่อนักเรียนสำเร็จ' };
+      } catch (e) {
+        return { success: false, message: e.toString() };
+      }
+    },
     getAnswerKeys: getAnswerKeys,
     saveAnswerKeys: saveAnswerKeys,
     getSettings: getSettings,

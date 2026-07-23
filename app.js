@@ -132,7 +132,10 @@ function renderSidebar() {
   } else {
     items.push({ path: '/', name: 'แดชบอร์ด', icon: 'ph-squares-four' });
     items.push({ path: '/subjects', name: 'จัดการรายวิชา', icon: 'ph-books' });
+    items.push({ path: '/rosters', name: 'จัดการรายชื่อนักเรียน', icon: 'ph-users-three' });
     items.push({ path: '/scan', name: 'สแกนกระดาษคำตอบ', icon: 'ph-scan' });
+    items.push({ path: '/reports', name: 'รายงานผลคะแนน', icon: 'ph-chart-bar' });
+    
     if (currentUser.role === 'admin') {
       items.push({ path: '/users', name: 'จัดการผู้ใช้งาน', icon: 'ph-users' });
       items.push({ path: '/settings', name: 'ตั้งค่าระบบ', icon: 'ph-gear' });
@@ -151,16 +154,80 @@ function renderSidebar() {
 function renderContent() {
   if (currentPath === '/') return renderDashboardPage();
   if (currentPath === '/subjects') return renderSubjectsPage();
+  if (currentPath === '/rosters') return renderRostersPage();
   if (currentPath === '/scan') return renderScanPage();
+  if (currentPath === '/reports') return renderReportsPage();
   if (currentPath === '/users') return renderUsersPage();
   if (currentPath === '/settings') return renderSettingsPage();
 }
 
 async function renderDashboardPage() {
   const contentContainer = document.getElementById('page-content');
-  contentContainer.innerHTML = '<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดภาพรวมระบบ...</div>';
+  
+  if (currentUser.role === 'student') {
+    contentContainer.innerHTML = '';
+    Swal.fire({ title: 'กำลังโหลดคะแนนของคุณ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    
+    const res = await apiCall({ action: 'getScanResults', subjectId: currentUser.subjectId });
+    Swal.close();
+    
+    let content = `
+      <div class="card glass-panel" style="text-align: center; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <h2 style="margin-bottom: 10px; color: var(--primary-color);">ยินดีต้อนรับ, ${currentUser.name}</h2>
+        <p style="color: #666; margin-bottom: 30px;">รหัสวิชา: <strong>${currentUser.subjectId}</strong> | ห้อง: <strong>${currentUser.className}</strong></p>
+    `;
+    
+    if (res && res.success && res.data && res.data.length > 0) {
+      // Find the student's score
+      let seatNoStr = currentUser.seatNumber.toString();
+      if (seatNoStr.length === 1) seatNoStr = '0' + seatNoStr;
+      
+      const myScans = res.data.filter(s => {
+        let sId = String(s.StudentID);
+        if (sId.length === 1) sId = '0' + sId;
+        return sId === seatNoStr;
+      });
+      
+      if (myScans.length > 0) {
+        // Get the latest scan
+        const latestScan = myScans.reduce((a, b) => new Date(a.Timestamp) > new Date(b.Timestamp) ? a : b);
+        
+        content += `
+          <div style="background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(0,0,0,0.1); border-radius: 20px; padding: 40px; margin-bottom: 20px;">
+            <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 10px;">คะแนนรวมที่คุณได้</div>
+            <div style="font-size: 5rem; font-weight: 800; color: #059669; line-height: 1;">${latestScan.Score}</div>
+            <div style="font-size: 0.9rem; color: #999; margin-top: 15px;">ตรวจล่าสุดเมื่อ: ${new Date(latestScan.Timestamp).toLocaleString('th-TH')}</div>
+          </div>
+        `;
+      } else {
+        content += `
+          <div style="padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 16px; border: 1px dashed rgba(239, 68, 68, 0.5);">
+            <i class="ph ph-warning-circle" style="font-size: 3rem; color: #ef4444; margin-bottom: 10px;"></i>
+            <h3 style="color: #ef4444;">ยังไม่มีคะแนนในระบบ</h3>
+            <p style="color: #666;">กระดาษคำตอบของคุณอาจจะยังไม่ได้ถูกสแกน หรือกรอกเลขที่ผิดพลาด กรุณาติดต่อคุณครูผู้สอน</p>
+          </div>
+        `;
+      }
+    } else {
+      content += `
+        <div style="padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 16px; border: 1px dashed rgba(239, 68, 68, 0.5);">
+          <i class="ph ph-warning-circle" style="font-size: 3rem; color: #ef4444; margin-bottom: 10px;"></i>
+          <h3 style="color: #ef4444;">ยังไม่มีข้อมูลการสอบในวิชานี้</h3>
+        </div>
+      `;
+    }
+    
+    content += `</div>`;
+    contentContainer.innerHTML = content;
+    return;
+  }
+  
+  // Admin / Staff Dashboard
+  contentContainer.innerHTML = '';
+  Swal.fire({ title: 'กำลังโหลดภาพรวมระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const res = await apiCall({ action: 'getDashboardStats' });
+  Swal.close();
   let stats = { totalSubjects: 0, totalScans: 0 };
   if (res && res.success) {
     stats = res.data;
