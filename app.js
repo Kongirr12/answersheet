@@ -89,6 +89,7 @@ async function handleStaffLogin(e) {
 
 function loginSuccess(user) {
   currentUser = user;
+  localStorage.setItem('omr_currentUser', JSON.stringify(user));
   Swal.fire({
     title: 'สำเร็จ',
     text: 'เข้าสู่ระบบสำเร็จ',
@@ -111,6 +112,7 @@ function loginSuccess(user) {
 function handleLogout(e) {
   if (e) e.preventDefault();
   currentUser = null;
+  localStorage.removeItem('omr_currentUser');
   document.getElementById('app-screen').classList.remove('active');
   document.getElementById('login-screen').classList.add('active');
   document.getElementById('student-id-input').value = '';
@@ -283,3 +285,23 @@ document.addEventListener('mousemove', resetIdleTime);
 document.addEventListener('keypress', resetIdleTime);
 document.addEventListener('click', resetIdleTime);
 document.addEventListener('scroll', resetIdleTime);
+
+// Load session on startup
+document.addEventListener('DOMContentLoaded', () => {
+  const savedUser = localStorage.getItem('omr_currentUser');
+  if (savedUser) {
+    try {
+      const user = JSON.parse(savedUser);
+      currentUser = user;
+      
+      // Switch UI to Main App without Swal popup
+      document.getElementById('login-screen').classList.remove('active');
+      document.getElementById('app-screen').classList.add('active');
+      document.getElementById('user-name-display').innerText = user.name;
+      document.getElementById('user-avatar-display').innerText = user.name.charAt(0);
+      navigate('/');
+    } catch (e) {
+      localStorage.removeItem('omr_currentUser');
+    }
+  }
+});
