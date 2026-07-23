@@ -290,27 +290,27 @@ function processOMRImage(img) {
   const canvas = document.getElementById('omr-canvas');
   const ctx = canvas.getContext('2d');
   
-  // Scale image to a standard processing size (max width 800)
   const maxW = 800;
   const scale = img.width > maxW ? maxW / img.width : 1;
   canvas.width = img.width * scale;
   canvas.height = img.height * scale;
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   
+  let src, gray, blurred, thresh, contours, hierarchy, warped, wGray, wThresh, wContours, srcTri, dstTri, M;
+  
   try {
-    let src = cv.imread(canvas);
-    let gray = new cv.Mat();
+    src = cv.imread(canvas);
+    gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     
-    let blurred = new cv.Mat();
+    blurred = new cv.Mat();
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
     
-    let thresh = new cv.Mat();
+    thresh = new cv.Mat();
     cv.adaptiveThreshold(blurred, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
     
-    // Find Markers (largest 4 contours with circular/square aspect ratio)
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
+    contours = new cv.MatVector();
+    hierarchy = new cv.Mat();
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     
     let candidates = [];
@@ -331,29 +331,26 @@ function processOMRImage(img) {
       throw new Error("ไม่พบจุดอ้างอิง 4 มุมกระดาษ (Markers)");
     }
     
-    // Sort markers: top-left, top-right, bottom-right, bottom-left
     markers.sort((a, b) => a.center.y - b.center.y);
     let topM = markers.slice(0, 2).sort((a, b) => a.center.x - b.center.x);
     let botM = markers.slice(2, 4).sort((a, b) => a.center.x - b.center.x);
     let tl = topM[0].center, tr = topM[1].center;
     let bl = botM[0].center, br = botM[1].center;
     
-    // Warp Perspective to 840 x 1224 (A4 ratio approximation)
     let w = 840, h = 1224;
-    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
-    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, w, 0, w, h, 0, h]);
-    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+    srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
+    dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, w, 0, w, h, 0, h]);
+    M = cv.getPerspectiveTransform(srcTri, dstTri);
     
-    let warped = new cv.Mat();
+    warped = new cv.Mat();
     cv.warpPerspective(src, warped, M, new cv.Size(w, h), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
     
-    let wGray = new cv.Mat();
+    wGray = new cv.Mat();
     cv.cvtColor(warped, wGray, cv.COLOR_RGBA2GRAY);
-    let wThresh = new cv.Mat();
+    wThresh = new cv.Mat();
     cv.adaptiveThreshold(wGray, wThresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 15, 5);
     
-    // Find all bubbles in warped image
-    let wContours = new cv.MatVector();
+    wContours = new cv.MatVector();
     cv.findContours(wThresh, wContours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     
     let bubbles = [];
@@ -366,17 +363,14 @@ function processOMRImage(img) {
       }
     }
     
-    // Split into ID Grid (< 30% width) and Answers Grid (> 30% width)
     let splitX = w * 0.3;
     let idBubbles = bubbles.filter(b => b.center.x < splitX);
     let ansBubbles = bubbles.filter(b => b.center.x > splitX);
     
-    // Process ID Grid (Seat Number)
     let idXClusters = clusterByThreshold(idBubbles.map(b => b.center.x), 15);
     let idYClusters = clusterByThreshold(idBubbles.map(b => b.center.y), 15);
     
     if (idXClusters.length !== 2 || idYClusters.length !== 10) {
-      console.warn("ID Grid fallback", idXClusters.length, idYClusters.length);
       if(idXClusters.length < 2) idXClusters = [61, 95]; 
       if(idYClusters.length < 10) idYClusters = [150, 185, 220, 255, 290, 325, 360, 395, 430, 465];
     }
@@ -386,13 +380,12 @@ function processOMRImage(img) {
       let maxDensity = 0;
       let selectedDigit = "?";
       for (let row = 0; row < 10; row++) {
-        let bx = idXClusters[col] - 12; // box size ~24x24
+        let bx = idXClusters[col] - 12;
         let by = idYClusters[row] - 12;
         let rect = new cv.Rect(Math.max(0, Math.floor(bx)), Math.max(0, Math.floor(by)), 24, 24);
         let roi = wThresh.roi(rect);
         let density = cv.countNonZero(roi) / (24 * 24);
         roi.delete();
-        cv.rectangle(warped, new cv.Point(bx, by), new cv.Point(bx+24, by+24), new cv.Scalar(255,0,0,255), 1);
         if (density > maxDensity && density > 0.30) {
           maxDensity = density;
           selectedDigit = row.toString();
@@ -401,16 +394,10 @@ function processOMRImage(img) {
       seatNumber += selectedDigit;
     }
     
-    // Process Answers Grid
     const totalQ = currentScanSubject ? parseInt(currentScanSubject.TotalQuestions) || 20 : 20;
     const choicesList = ['ก','ข','ค','ง'];
-    
     let ansXClusters = clusterByThreshold(ansBubbles.map(b => b.center.x), 15);
     let ansYClusters = clusterByThreshold(ansBubbles.map(b => b.center.y), 15);
-    
-    let expectedCols = Math.ceil(totalQ / 10) * 4;
-    
-    // Fallback if clustering misses columns/rows due to faint print
     if (ansYClusters.length < 10) ansYClusters = [115,150,185,220,255,290,325,360,395,430];
     
     let extractedAnswers = [];
@@ -419,30 +406,22 @@ function processOMRImage(img) {
     for (let q = 1; q <= totalQ; q++) {
       let colIdx = Math.floor((q - 1) / 10);
       let rowIdx = (q - 1) % 10;
-      
       let maxDensity = 0;
       let selectedChoice = "?";
-      
       for (let c = 0; c < 4; c++) {
         let xIdx = colIdx * 4 + c;
         if (xIdx >= ansXClusters.length || rowIdx >= ansYClusters.length) continue;
-        
         let bx = ansXClusters[xIdx] - 12;
         let by = ansYClusters[rowIdx] - 12;
         let rect = new cv.Rect(Math.max(0, Math.floor(bx)), Math.max(0, Math.floor(by)), 24, 24);
-        
         let roi = wThresh.roi(rect);
         let density = cv.countNonZero(roi) / (24 * 24);
         roi.delete();
-        
-        cv.rectangle(warped, new cv.Point(bx, by), new cv.Point(bx+24, by+24), new cv.Scalar(0,255,0,255), 1);
-        
-        if (density > maxDensity && density > 0.30) { // 30% threshold for cross/shade
+        if (density > maxDensity && density > 0.30) {
           maxDensity = density;
           selectedChoice = choicesList[c];
         }
       }
-      
       if (selectedChoice !== "?") detectedCount++;
       extractedAnswers.push({ q: q, ans: selectedChoice });
     }
@@ -450,18 +429,18 @@ function processOMRImage(img) {
     lastExtractedStudentId = seatNumber.includes("?") ? "XX" : seatNumber;
     lastExtractedAnswers = extractedAnswers;
     lastScanConfidence = Math.round((detectedCount / totalQ) * 100);
-    
-    cv.imshow(canvas, warped); // Show aligned output
-    
-    src.delete(); gray.delete(); blurred.delete(); thresh.delete(); contours.delete(); hierarchy.delete();
-    warped.delete(); wGray.delete(); wThresh.delete(); wContours.delete(); srcTri.delete(); dstTri.delete(); M.delete();
-    
-    setTimeout(() => gradeOMR(), 100);
-    
+    cv.imshow(canvas, warped);
+    gradeOMR();
   } catch (err) {
     console.error("OpenCV Error:", err);
     Swal.fire('ข้อผิดพลาดจาก AI', 'อ่านกระดาษล้มเหลว โปรดตรวจสอบว่าเห็นจุดดำ 4 มุมครบถ้วน หรือมีแสงสว่างเพียงพอ', 'error');
     document.getElementById('res-details').innerHTML = '<span style="color:red;">สแกนล้มเหลว</span>';
+    if (isBulkMode) setTimeout(() => processNextInQueue(), 1000);
+  } finally {
+    if (src) src.delete(); if (gray) gray.delete(); if (blurred) blurred.delete();
+    if (thresh) thresh.delete(); if (contours) contours.delete(); if (hierarchy) hierarchy.delete();
+    if (warped) warped.delete(); if (wGray) wGray.delete(); if (wThresh) wThresh.delete();
+    if (wContours) wContours.delete(); if (srcTri) srcTri.delete(); if (dstTri) dstTri.delete(); if (M) M.delete();
   }
 }
 
@@ -615,7 +594,7 @@ function renderBulkTable() {
       </td>
       <td>${res.Score}</td>
       <td style="${maxWritten > 0 ? '' : 'display:none;'}">${writtenInput}</td>
-      <td id="bulk-total-${index}" style="font-weight: bold; color: #059669;">${res.Score}</td>
+      <td id="bulk-total-${index}" style="font-weight: bold; color: #059669;">${res.TotalScore}</td>
       <td style="color: ${confColor};">${res.Confidence}</td>
       <td>
         <button class="btn btn-sm btn-outline" style="color: red; border-color: red;" onclick="removeBulkItem(${index})"><i class="ph ph-trash"></i></button>
@@ -641,8 +620,9 @@ window.updateBulkSeat = function(index, value) {
 };
 
 window.removeBulkItem = function(index) {
-  document.getElementById(`bulk-row-${index}`).style.display = 'none';
-  bulkResults[index].deleted = true;
+  bulkResults.splice(index, 1);
+  document.getElementById('bulk-count').innerText = bulkResults.length;
+  renderBulkTable();
 };
 
 async function saveBulkResult() {

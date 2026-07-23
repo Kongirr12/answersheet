@@ -72,8 +72,9 @@ async function loadReportData(subjectId) {
   const subjectName = select.options[select.selectedIndex].text;
   document.getElementById('report-subject-name').innerText = subjectName;
   
-  const match = subjectName.match(/\(([^)]+)\)$/);
-  const className = match ? match[1] : '';
+  // Extract class name safely: assumes format 'Code Name (Class)'
+  const lastParenIndex = subjectName.lastIndexOf('(');
+  const className = lastParenIndex !== -1 ? subjectName.substring(lastParenIndex + 1, subjectName.length - 1) : '';
   
   Swal.fire({ title: 'กำลังดึงข้อมูลคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
@@ -101,6 +102,7 @@ async function loadReportData(subjectId) {
     let finalReport = [];
     
     if (rosters.length > 0) {
+      // Map matched roster students
       rosters.forEach(r => {
         let seatNo = String(r.SeatNo);
         if (seatNo.length === 1) seatNo = '0' + seatNo;
@@ -113,23 +115,48 @@ async function loadReportData(subjectId) {
           Score: scan ? scan.Score : 'ขาดสอบ',
           Timestamp: scan ? new Date(scan.Timestamp).toLocaleString('th-TH') : '-'
         });
+        
+        // Remove from map so we know it's been processed
+        if (scan) delete studentMap[seatNo];
       });
-    } else {
+      
+      // Append any remaining scans that didn't match a roster entry
       Object.values(studentMap).forEach(scan => {
         let seatNo = String(scan.StudentID);
-        if (seatNo.length === 1) seatNo = '0' + seatNo;
+        if (seatNo.length === 1 && seatNo !== 'XX') seatNo = '0' + seatNo;
         
         finalReport.push({
           SeatNo: seatNo,
           StudentId: '',
-          Name: 'นักเรียน เลขที่ ' + seatNo,
+          Name: seatNo === 'XX' ? 'กระดาษคำตอบที่อ่านเลขที่ไม่ได้' : 'นักเรียน เลขที่ ' + seatNo + ' (ไม่มีในรายชื่อ)',
+          Score: scan.Score,
+          Timestamp: new Date(scan.Timestamp).toLocaleString('th-TH')
+        });
+      });
+      
+    } else {
+      Object.values(studentMap).forEach(scan => {
+        let seatNo = String(scan.StudentID);
+        if (seatNo.length === 1 && seatNo !== 'XX') seatNo = '0' + seatNo;
+        
+        finalReport.push({
+          SeatNo: seatNo,
+          StudentId: '',
+          Name: seatNo === 'XX' ? 'กระดาษคำตอบที่อ่านเลขที่ไม่ได้' : 'นักเรียน เลขที่ ' + seatNo,
           Score: scan.Score,
           Timestamp: new Date(scan.Timestamp).toLocaleString('th-TH')
         });
       });
     }
     
-    finalReport.sort((a, b) => parseInt(a.SeatNo) - parseInt(b.SeatNo));
+    // Sort safely handling 'XX' or NaN
+    finalReport.sort((a, b) => {
+      let numA = parseInt(a.SeatNo);
+      let numB = parseInt(b.SeatNo);
+      if (isNaN(numA)) numA = 999;
+      if (isNaN(numB)) numB = 999;
+      return numA - numB;
+    });
     
     currentReportData = finalReport;
     currentReportSubject = subjectName;

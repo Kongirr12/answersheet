@@ -26,6 +26,7 @@ async function renderSubjectsPage() {
       
       <table class="glass-table">
         <thead>
+          <tr>
             <th>รหัสวิชา</th>
             <th>ชื่อวิชา</th>
             <th>ประเภทการสอบ</th>

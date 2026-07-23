@@ -369,6 +369,7 @@ const Database = (function() {
   }
 
   return {
+    SPREADSHEET_ID: SPREADSHEET_ID,
     initialize: initialize,
     loginStaff: loginStaff,
     addUser: addUser,
