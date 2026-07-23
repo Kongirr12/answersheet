@@ -85,11 +85,11 @@ function parseExcelPaste() {
   const text = pasteArea.value.trim();
   if (!text) return;
   
-  const lines = text.split('\\n');
+  const lines = text.split('\n');
   const newData = [];
   
   for (let line of lines) {
-    const cols = line.split('\\t');
+    const cols = line.split('\t');
     if (cols.length >= 2) {
       let seatNo = cols[0].trim();
       if (seatNo.length === 1) seatNo = '0' + seatNo;
@@ -116,7 +116,7 @@ function parseExcelPaste() {
     
     renderRosterTable();
     pasteArea.value = '';
-    Swal.fire('สำเร็จ', \`นำเข้าข้อมูล \${newData.length} รายการ เรียบร้อย (อย่าลืมกดบันทึก)\`, 'success');
+    Swal.fire('สำเร็จ', `นำเข้าข้อมูล ${newData.length} รายการ เรียบร้อย (อย่าลืมกดบันทึก)`, 'success');
   } else {
     Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณาก๊อปปี้ข้อมูลที่มีอย่างน้อย 2 คอลัมน์ (เลขที่ และ ชื่อ)', 'error');
   }
@@ -133,12 +133,12 @@ function renderRosterTable() {
   
   currentRosterData.forEach((r, index) => {
     let tr = document.createElement('tr');
-    tr.innerHTML = \`
-      <td><input type="text" class="form-control" style="padding: 8px; width: 60px;" value="\${r.SeatNo}" onchange="updateRosterData(\${index}, 'SeatNo', this.value)"></td>
-      <td><input type="text" class="form-control" style="padding: 8px;" value="\${r.StudentId || ''}" onchange="updateRosterData(\${index}, 'StudentId', this.value)"></td>
-      <td><input type="text" class="form-control" style="padding: 8px;" value="\${r.Name || ''}" onchange="updateRosterData(\${index}, 'Name', this.value)"></td>
-      <td><button class="btn btn-sm btn-outline" style="color: red; border-color: red; padding: 5px 10px;" onclick="removeRosterRow(\${index})"><i class="ph ph-trash"></i></button></td>
-    \`;
+    tr.innerHTML = `
+      <td><input type="text" class="form-control" style="padding: 8px; width: 60px;" value="${r.SeatNo}" onchange="updateRosterData(${index}, 'SeatNo', this.value)"></td>
+      <td><input type="text" class="form-control" style="padding: 8px;" value="${r.StudentId || ''}" onchange="updateRosterData(${index}, 'StudentId', this.value)"></td>
+      <td><input type="text" class="form-control" style="padding: 8px;" value="${r.Name || ''}" onchange="updateRosterData(${index}, 'Name', this.value)"></td>
+      <td><button class="btn btn-sm btn-outline" style="color: red; border-color: red; padding: 5px 10px;" onclick="removeRosterRow(${index})"><i class="ph ph-trash"></i></button></td>
+    `;
     tbody.appendChild(tr);
   });
 }

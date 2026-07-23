@@ -4,15 +4,18 @@ let currentReportData = [];
 async function renderReportsPage() {
   const contentContainer = document.getElementById('page-content');
   
-  contentContainer.innerHTML = \`<div style="text-align:center; padding: 50px;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem;"></i> กำลังโหลดข้อมูล...</div>\`;
+  contentContainer.innerHTML = '';
+  Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const res = await apiCall({ action: 'getSubjects' });
+  Swal.close();
+  
   let subjects = [];
   if (res && res.success) {
     subjects = res.data;
   }
   
-  const content = \`
+  const content = `
     <div class="card glass-panel" style="margin-bottom: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <h2><i class="ph ph-chart-bar" style="color: var(--primary-color);"></i> รายงานผลคะแนน</h2>
@@ -25,7 +28,7 @@ async function renderReportsPage() {
         <i class="ph ph-books"></i>
         <select id="report-subject-select" class="form-control" onchange="loadReportData(this.value)">
           <option value="">-- เลือกรายวิชา --</option>
-          \${subjects.map(s => \`<option value="\${s.SubjectID}">\${s.Code} \${s.Name} (\${s.Class})</option>\`).join('')}
+          ${subjects.map(s => `<option value="${s.SubjectID}">${s.Code} ${s.Name} (${s.Class})</option>`).join('')}
         </select>
       </div>
     </div>
@@ -54,7 +57,7 @@ async function renderReportsPage() {
         </table>
       </div>
     </div>
-  \`;
+  `;
   contentContainer.innerHTML = content;
 }
 
@@ -69,13 +72,11 @@ async function loadReportData(subjectId) {
   const subjectName = select.options[select.selectedIndex].text;
   document.getElementById('report-subject-name').innerText = subjectName;
   
-  // Extract class name from the subject name, e.g., "MTH101 Math (ม.1/1)" -> "ม.1/1"
-  const match = subjectName.match(/\\(([^)]+)\\)$/);
+  const match = subjectName.match(/\(([^)]+)\)$/);
   const className = match ? match[1] : '';
   
   Swal.fire({ title: 'กำลังดึงข้อมูลคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
-  // Fetch Results and Roster in parallel
   const [resScan, resRoster] = await Promise.all([
     apiCall({ action: 'getScanResults', subjectId: subjectId }),
     apiCall({ action: 'getRosters', class: className })
@@ -87,9 +88,6 @@ async function loadReportData(subjectId) {
     let scans = resScan.data || [];
     let rosters = (resRoster && resRoster.success) ? (resRoster.data || []) : [];
     
-    // Map Roster names to Scans
-    // Sometimes a student scans multiple times. We should keep the highest or the latest? Let's just show all for now, or group by latest.
-    // Let's group by StudentID (SeatNo), keeping the latest scan.
     let studentMap = {};
     scans.forEach(scan => {
       let seatNo = String(scan.StudentID);
@@ -100,7 +98,6 @@ async function loadReportData(subjectId) {
       }
     });
     
-    // Create final report array based on Roster (to show missing students too)
     let finalReport = [];
     
     if (rosters.length > 0) {
@@ -118,7 +115,6 @@ async function loadReportData(subjectId) {
         });
       });
     } else {
-      // If no roster, just show the scans
       Object.values(studentMap).forEach(scan => {
         let seatNo = String(scan.StudentID);
         if (seatNo.length === 1) seatNo = '0' + seatNo;
@@ -133,7 +129,6 @@ async function loadReportData(subjectId) {
       });
     }
     
-    // Sort by SeatNo
     finalReport.sort((a, b) => parseInt(a.SeatNo) - parseInt(b.SeatNo));
     
     currentReportData = finalReport;
@@ -165,12 +160,12 @@ function renderReportTable() {
   currentReportData.forEach(r => {
     let scoreColor = r.Score === 'ขาดสอบ' ? 'color: red;' : 'color: #059669; font-weight: bold;';
     let tr = document.createElement('tr');
-    tr.innerHTML = \`
-      <td>\${r.SeatNo}</td>
-      <td>\${r.Name}</td>
-      <td class="text-center" style="\${scoreColor}">\${r.Score}</td>
-      <td style="font-size: 0.85rem; color: #666;">\${r.Timestamp}</td>
-    \`;
+    tr.innerHTML = `
+      <td>${r.SeatNo}</td>
+      <td>${r.Name}</td>
+      <td class="text-center" style="${scoreColor}">${r.Score}</td>
+      <td style="font-size: 0.85rem; color: #666;">${r.Timestamp}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
@@ -178,19 +173,18 @@ function renderReportTable() {
 function exportToCSV() {
   if (currentReportData.length === 0) return;
   
-  // BOM for UTF-8 in Excel
-  let csvContent = "\\uFEFFเลขที่,รหัสนักเรียน,ชื่อ-นามสกุล,คะแนน,เวลาที่ส่ง\\n";
+  let csvContent = "\uFEFFเลขที่,รหัสนักเรียน,ชื่อ-นามสกุล,คะแนน,เวลาที่ส่ง\n";
   
   currentReportData.forEach(r => {
-    let row = [\`"\${r.SeatNo}"\`, \`"\${r.StudentId}"\`, \`"\${r.Name}"\`, \`"\${r.Score}"\`, \`"\${r.Timestamp}"\`];
-    csvContent += row.join(",") + "\\n";
+    let row = [`"${r.SeatNo}"`, `"${r.StudentId}"`, `"${r.Name}"`, `"${r.Score}"`, `"${r.Timestamp}"`];
+    csvContent += row.join(",") + "\n";
   });
   
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", \`คะแนน_\${currentReportSubject}.csv\`);
+  link.setAttribute("download", `คะแนน_${currentReportSubject}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
