@@ -89,6 +89,7 @@ function renderScanPage() {
             
             <p style="margin-bottom: 8px;"><strong>เลขที่:</strong> <span id="res-student" style="color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">-</span></p>
             <p style="margin-bottom: 8px;"><strong>ความมั่นใจ:</strong> <span id="res-conf">-</span></p>
+            <p style="margin-bottom: 8px; font-size: 0.85rem; color: #666;">⏱ เวลาประมวลผล AI: <span id="res-time">-</span></p>
             <hr style="border: none; border-top: 1px dashed #eee; margin: 15px 0;">
             <div style="text-align: center; margin-bottom: 15px;">
               <div style="font-size: 0.9rem; color: var(--text-secondary);">คะแนนที่ได้</div>
@@ -282,8 +283,10 @@ function clusterByThreshold(values, threshold) {
 let lastExtractedAnswers = [];
 let lastExtractedStudentId = "";
 let lastScanConfidence = 0;
+let scanStartTime = 0;
 
 function processOMRImage(img) {
+  scanStartTime = performance.now();
   const canvas = document.getElementById('omr-canvas');
   const ctx = canvas.getContext('2d');
   
@@ -490,6 +493,10 @@ function gradeOMR() {
   document.getElementById('res-student').innerText = lastExtractedStudentId;
   let confColor = lastScanConfidence > 90 ? 'green' : (lastScanConfidence > 70 ? 'orange' : 'red');
   document.getElementById('res-conf').innerHTML = `<span style="color: ${confColor};">${lastScanConfidence}%</span>`;
+  
+  let timeTaken = (performance.now() - scanStartTime).toFixed(0);
+  document.getElementById('res-time').innerText = timeTaken + " ms";
+  
   document.getElementById('res-score').innerText = score;
   document.getElementById('res-details').innerHTML = detailHtml;
   
