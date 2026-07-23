@@ -11,7 +11,6 @@ async function renderUsersPage() {
   
   if (res && res.success) {
     teachers = res.data.teachers;
-    studentsCount = res.data.studentsCount;
   }
 
   const content = `
@@ -21,7 +20,7 @@ async function renderUsersPage() {
       </div>
       
       <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 300px; border-right: 1px solid var(--border-color); padding-right: 20px;">
+        <div style="flex: 1; min-width: 300px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0;">บัญชีผู้ดูแล/คุณครู</h3>
             <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.9rem;" onclick="showAddUserModal()">+ เพิ่มบัญชี</button>
@@ -58,17 +57,6 @@ async function renderUsersPage() {
               `).join('')}
             </tbody>
           </table>
-        </div>
-        
-        <div style="flex: 1; min-width: 300px;">
-          <h3 style="margin-bottom: 15px;">ฐานข้อมูลนักเรียน</h3>
-          <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">${studentsCount} คน</div>
-          <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.95rem;">
-            รายชื่อและรหัสของนักเรียนจะถูกซิงค์มาจาก Google Sheets อัตโนมัติ (ชีต Students) 
-          </p>
-          <button class="btn btn-outline w-100" style="justify-content: center;" onclick="Swal.fire('Google Sheets', 'กรุณาเปิดไฟล์ตาราง Google Sheets ของคุณเพื่อจัดการข้อมูล', 'info')">
-            <i class="ph ph-table"></i> เปิดตาราง (Google Sheets)
-          </button>
         </div>
       </div>
     </div>
